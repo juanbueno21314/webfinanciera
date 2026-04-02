@@ -1,0 +1,128 @@
+<!-- Verdadero o Falso - Modo Normal -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verdadero o Falso - Finanzas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #e0f7fa, #fdfdfd);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .game-box { max-width: 700px; margin: auto; padding: 3rem; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 32px rgba(0,0,0,0.15); animation: fadeIn 0.6s ease-in; }
+        h3 { font-size: 2rem; color: #0d6efd; margin-bottom: 1rem; font-weight: bold; }
+        .progress-counter { font-weight: bold; color: #555; margin-bottom: 1rem; }
+        .question { font-size: 1.4rem; font-weight: 600; color: #343a40; margin-bottom: 2rem; }
+        .btn-game { width: 45%; padding: 12px; font-size: 1.1rem; font-weight: 500; border-radius: 12px; transition: transform 0.2s ease; }
+        .btn-game:hover { transform: scale(1.05); }
+        .btn-correct { background-color: #198754 !important; color: white; }
+        .btn-incorrect { background-color: #dc3545 !important; color: white; }
+        .feedback { font-size: 1.2rem; font-weight: 500; margin-top: 1.5rem; min-height: 60px; }
+        .fade { opacity: 0; transition: opacity 0.5s ease; }
+        .fade.show { opacity: 1; }
+        .btn-warning { font-weight: 500; border-radius: 10px; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="game-box text-center fade show" id="juego">
+        <h3>🧠 Verdadero o Falso</h3>
+        <p class="progress-counter" id="contador">Pregunta 1 de 4</p>
+        <p class="question" id="pregunta">Cargando...</p>
+        <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+            <button class="btn btn-success btn-game" onclick="responder(true)">✅ Verdadero</button>
+            <button class="btn btn-danger btn-game" onclick="responder(false)">❌ Falso</button>
+        </div>
+        <p id="feedback" class="feedback"></p>
+        <button class="btn btn-primary mt-4 d-none" id="btnSiguiente" onclick="siguiente()">Siguiente</button>
+        <div class="mt-4">
+            <a href="/juegos" class="btn btn-warning">← Volver a juegos</a>
+        </div>
+    </div>
+</div>
+<script>
+    let preguntas = [
+        { texto: "Ahorrar es guardar lo que sobra después de gastar.", respuesta: false, explicacion: "💡 Ahorrar debe ser lo primero que haces al recibir tu ingreso, no lo último." },
+        { texto: "Endeudarse no siempre es malo si sabes manejarlo bien.", respuesta: true, explicacion: "🎯 Las deudas bien manejadas pueden ayudarte a lograr metas importantes." },
+        { texto: "Tener un presupuesto mensual ayuda a controlar tus gastos.", respuesta: true, explicacion: "📊 Con un presupuesto sabes a dónde va tu dinero y tomas mejores decisiones." },
+        { texto: "Es mejor pagar solo el mínimo de la tarjeta de crédito.", respuesta: false, explicacion: "❌ Pagar solo el mínimo genera intereses altos y alarga la deuda." }
+    ];
+    preguntas = preguntas.sort(() => Math.random() - 0.5);
+    let index = 0;
+    let aciertos = 0;
+
+    function cargarPregunta() {
+        const p = preguntas[index];
+        document.getElementById("pregunta").textContent = p.texto;
+        document.getElementById("contador").textContent = `Pregunta ${index + 1} de ${preguntas.length}`;
+        document.getElementById("feedback").textContent = "";
+        document.getElementById("btnSiguiente").classList.add("d-none");
+        document.querySelectorAll('.btn-game').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('btn-correct', 'btn-incorrect');
+        });
+    }
+
+    function responder(opcion) {
+        const actual = preguntas[index];
+        const correcto = actual.respuesta === opcion;
+        const feedback = document.getElementById("feedback");
+        if (correcto) aciertos++;
+        document.querySelectorAll('.btn-game').forEach(btn => {
+            const esVerdadero = btn.textContent.includes("Verdadero");
+            if ((esVerdadero && actual.respuesta) || (!esVerdadero && !actual.respuesta)) {
+                btn.classList.add('btn-correct');
+            } else {
+                btn.classList.add('btn-incorrect');
+            }
+            btn.disabled = true;
+        });
+        feedback.innerHTML = correcto
+            ? `✔️ <strong>¡Correcto!</strong> ${actual.explicacion}`
+            : `❌ <strong>Incorrecto.</strong> ${actual.explicacion}`;
+        document.getElementById("btnSiguiente").classList.remove("d-none");
+    }
+
+    function siguiente() {
+        index++;
+        if (index < preguntas.length) {
+            document.getElementById("juego").classList.remove("show");
+            setTimeout(() => {
+                cargarPregunta();
+                document.getElementById("juego").classList.add("show");
+            }, 300);
+        } else {
+            guardarPuntajeFinal("verdadero_falso", aciertos);
+            document.querySelector(".game-box").innerHTML = `
+                <h3 class="mb-3">🎉 ¡Juego terminado!</h3>
+                <p class="mb-3">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
+                <p class="mb-3">Gracias por jugar. Has completado todas las preguntas.</p>
+                <p>${aciertos === preguntas.length ? '🏆 ¡Eres un genio financiero!' : aciertos >= 2 ? '💡 Sigue practicando y mejorarás.' : '📘 Revisa las lecciones para reforzar tus conocimientos.'}</p>
+                <a href="/juegos" class="btn btn-primary mb-2">Volver a minijuegos</a><br>
+                <a href="/juegos/desafio" class="btn btn-outline-danger">⚡ ¿Te atreves al modo desafío?</a>
+            `;
+        }
+    }
+
+    function guardarPuntajeFinal(juego, puntaje) {
+        fetch('/api/puntajes/guardar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                juego: juego,
+                puntaje: puntaje
+            })
+        }).then(res => {
+            if (!res.ok) {
+                console.warn("⚠️ No se pudo guardar el puntaje.");
+            }
+        });
+    }
+
+    cargarPregunta();
+</script>
+</body>
+</html>

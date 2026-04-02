@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>💰 Ahorra y Gana</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #e0f7fa, #f9fbe7);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .game-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .form-control {
+            font-size: 1.1rem;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .stars {
+            font-size: 1.5rem;
+        }
+
+        .porcentaje {
+            font-size: 0.95rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="game-box">
+        <h3 class="text-center mb-4">💰 <strong>Ahorra y Gana</strong></h3>
+        <p class="text-center text-muted">Simula cómo distribuir tu dinero según el nivel y toma buenas decisiones.</p>
+
+        <div class="mb-3">
+            <label for="nivel" class="form-label">🎯 Selecciona nivel:</label>
+            <select id="nivel" class="form-select">
+                <option value="1000000">Fácil ($1.000.000)</option>
+                <option value="800000">Intermedio ($800.000)</option>
+                <option value="600000">Difícil ($600.000)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="vivienda" class="form-label">🏠 Vivienda</label>
+            <input type="text" class="form-control currency" id="vivienda" placeholder="$0">
+            <small class="porcentaje" id="porc-vivienda"></small>
+        </div>
+        <div class="mb-3">
+            <label for="alimentacion" class="form-label">🍽️ Alimentación</label>
+            <input type="text" class="form-control currency" id="alimentacion" placeholder="$0">
+            <small class="porcentaje" id="porc-alimentacion"></small>
+        </div>
+        <div class="mb-3">
+            <label for="entretenimiento" class="form-label">🎮 Entretenimiento</label>
+            <input type="text" class="form-control currency" id="entretenimiento" placeholder="$0">
+            <small class="porcentaje" id="porc-entretenimiento"></small>
+        </div>
+        <div class="mb-3">
+            <label for="ahorro" class="form-label">💎 Ahorro</label>
+            <input type="text" class="form-control currency" id="ahorro" placeholder="$0">
+            <small class="porcentaje" id="porc-ahorro"></small>
+        </div>
+
+        <div class="text-center">
+            <button class="btn btn-success" onclick="evaluar()">Evaluar</button>
+            <a href="/juegos" class="btn btn-outline-secondary ms-2">← Volver</a>
+        </div>
+
+        <div id="resultado" class="result-box mt-4 d-none"></div>
+    </div>
+</div>
+
+<script>
+    const fields = ["vivienda", "alimentacion", "entretenimiento", "ahorro"];
+
+    function parseValue(val) {
+        return parseInt(val.replace(/[^\d]/g, '') || 0);
+    }
+
+    function formatPesos(val) {
+        return "$" + val.toLocaleString("es-CO");
+    }
+
+    document.querySelectorAll('.currency').forEach(input => {
+        input.addEventListener('input', function () {
+            let value = this.value.replace(/[^\d]/g, '');
+            value = new Intl.NumberFormat('es-CO').format(value);
+            this.value = value ? '$' + value : '';
+            actualizarPorcentajes();
+        });
+    });
+
+    document.getElementById("nivel").addEventListener("change", actualizarPorcentajes);
+
+    function actualizarPorcentajes() {
+        const total = parseValue(document.getElementById("nivel").value);
+        fields.forEach(id => {
+            const val = parseValue(document.getElementById(id).value);
+            const porc = total > 0 ? (val / total * 100).toFixed(1) : 0;
+            document.getElementById("porc-" + id).textContent = porc > 0 ? `(${porc}% del total)` : '';
+        });
+    }
+
+   function guardarPuntajeFinal(juego, puntaje) {
+        fetch('/api/puntajes/guardar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                juego: juego,
+                puntaje: puntaje
+            })
+        }).then(res => {
+            if (!res.ok) {
+                console.warn("⚠️ No se pudo guardar el puntaje.");
+            }
+        });
+    }
+
+    function evaluar() {
+        let total = parseValue(document.getElementById("nivel").value);
+        const nivelTexto = document.getElementById("nivel").value;
+
+        const vivienda = parseValue(document.getElementById("vivienda").value);
+        const alimentacion = parseValue(document.getElementById("alimentacion").value);
+        const entretenimiento = parseValue(document.getElementById("entretenimiento").value);
+        const ahorro = parseValue(document.getElementById("ahorro").value);
+        const distribuido = vivienda + alimentacion + entretenimiento + ahorro;
+
+        const eventos = [
+            { texto: "🚨 Emergencia médica, reduce $100.000", afecta: -100000 },
+            { texto: "💼 Ingreso extra de $200.000", afecta: 200000 },
+            { texto: "🔧 Daño en casa, pierde $50.000", afecta: -50000 },
+            { texto: "🎁 Bono sorpresa, ganas $150.000", afecta: 150000 }
+        ];
+
+        let eventoTexto = "";
+        if (nivelTexto == "600000" && Math.random() < 0.5) {
+            const evento = eventos[Math.floor(Math.random() * eventos.length)];
+            total += evento.afecta;
+            eventoTexto = `<p><strong>⚠️ Evento inesperado:</strong> ${evento.texto}</p>`;
+        }
+
+        let estrellas = 0;
+        let consejos = [];
+
+        if (distribuido > total) {
+            consejos.push("💸 Te excediste del presupuesto disponible.");
+        } else {
+            estrellas++;
+        }
+
+        if (ahorro >= 0.2 * total) {
+            estrellas++;
+        } else {
+            consejos.push("💎 Ahorra al menos el 20% de tu presupuesto.");
+        }
+
+        if (entretenimiento < 0.25 * total) {
+            estrellas++;
+        } else {
+            consejos.push("🎮 Trata de no gastar tanto en entretenimiento.");
+        }
+
+        let mensaje = "";
+        if (estrellas === 3) {
+            mensaje = "🎉 <strong>¡Excelente!</strong> Tomaste decisiones muy sabias.";
+        } else if (estrellas === 2) {
+            mensaje = "⚠️ <strong>Aceptable</strong> pero puedes mejorar tus decisiones.";
+        } else {
+            mensaje = "😓 <strong>Necesitas mejorar</strong> tu planificación financiera.";
+        }
+
+        const resultado = document.getElementById("resultado");
+        resultado.className = "result-box bg-light border";
+        resultado.classList.remove("d-none");
+        resultado.innerHTML = `
+            ${eventoTexto}
+            <div class="stars">⭐ Recompensa: ${'⭐'.repeat(estrellas)}${'☆'.repeat(3 - estrellas)}</div>
+            <p class="mt-2">${mensaje}</p>
+            <p><strong>Distribuiste:</strong> ${formatPesos(distribuido)} / ${formatPesos(total)}</p>
+            <ul>${consejos.map(c => `<li>${c}</li>`).join('')}</ul>
+        `;
+
+        // ✅ Guardar puntaje
+        guardarPuntajeFinal("ahorra_gana", estrellas);
+    }
+
+    actualizarPorcentajes(); // Inicial
+</script>
+
+</body>
+</html>
