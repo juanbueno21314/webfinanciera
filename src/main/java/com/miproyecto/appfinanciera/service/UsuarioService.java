@@ -27,9 +27,21 @@ public class UsuarioService {
     private BCryptPasswordEncoder passwordEncoder;
 
     public Usuario registrarNuevo(Usuario usuario) {
-        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+        if (usuario.getContrasena() != null && !usuario.getContrasena().isBlank()) {
+            usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+        }
+
+        if (usuario.getProveedor() == null || usuario.getProveedor().isBlank()) {
+            usuario.setProveedor("LOCAL");
+        }
+
         Rol rolUsuario = rolRepo.findByNombre("ROLE_USER");
         usuario.setRoles(Collections.singleton(rolUsuario));
+
+        return usuarioRepo.save(usuario);
+    }
+
+    public Usuario guardar(Usuario usuario) {
         return usuarioRepo.save(usuario);
     }
 
@@ -37,6 +49,7 @@ public class UsuarioService {
         Optional<Usuario> usuario = usuarioRepo.findByEmail(email);
         return usuario.orElse(null);
     }
+
     public Usuario obtenerUsuarioPorAuthentication(Authentication authentication) {
         if (authentication == null) return null;
 
@@ -45,16 +58,16 @@ public class UsuarioService {
 
         if (principal instanceof OidcUser oidcUser) {
             email = oidcUser.getEmail();
+        } else if (principal instanceof CustomOAuth2User customOAuth2User) {
+            email = customOAuth2User.getEmail();
         } else if (principal instanceof UserDetails userDetails) {
             email = userDetails.getUsername();
         }
 
         if (email != null) {
-            // 👇 Esto asegura que sea una instancia gestionada por JPA
             return usuarioRepo.findByEmail(email).orElse(null);
         }
 
         return null;
     }
-
 }

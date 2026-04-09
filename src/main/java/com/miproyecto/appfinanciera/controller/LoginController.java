@@ -1,19 +1,14 @@
 package com.miproyecto.appfinanciera.controller;
 
-import com.miproyecto.appfinanciera.dto.NoticiaDto;
-import com.miproyecto.appfinanciera.service.NoticiasService;
 import com.miproyecto.appfinanciera.model.Usuario;
-import com.miproyecto.appfinanciera.service.CustomOAuth2User;
-import com.miproyecto.appfinanciera.service.UsuarioDetalles;
 import com.miproyecto.appfinanciera.service.UsuarioService;
-import org.springframework.security.core.Authentication;
-
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @Controller
 public class LoginController {
@@ -21,11 +16,9 @@ public class LoginController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @Autowired
-    private NoticiasService noticiasService;
-
     @GetMapping("/login")
-    public String login(Model model, @RequestParam(required = false) String logout,
+    public String login(Model model,
+                        @RequestParam(required = false) String logout,
                         @RequestParam(required = false) String error,
                         @RequestParam(required = false) String registrado) {
 
@@ -41,24 +34,76 @@ public class LoginController {
             model.addAttribute("mensajeRegistro", "¡Registro exitoso! Ya puedes iniciar sesión.");
         }
 
-        return "login"; // login.html
+        return "login";
     }
 
     @GetMapping("/registro")
-    public String mostrarRegistro(Model model) {
+    public String mostrarRegistro(Model model,
+                                  @RequestParam(required = false) String errorDatos) {
         model.addAttribute("usuario", new Usuario());
+
+        if (errorDatos != null) {
+            model.addAttribute("mensajeErrorDatos",
+                    "Debes autorizar el tratamiento de datos personales para completar el registro.");
+        }
+
         return "registro";
     }
 
     @PostMapping("/registro")
-    public String registrar(@ModelAttribute Usuario usuario) {
+    public String registrar(@ModelAttribute Usuario usuario,
+                            @RequestParam(value = "aceptaTratamientoDatos", required = false) String aceptaTratamientoDatos) {
+
+        if (aceptaTratamientoDatos == null) {
+            return "redirect:/registro?errorDatos=1";
+        }
+
+        usuario.setAceptaTratamientoDatos(true);
+        usuario.setFechaAceptacionDatos(LocalDateTime.now());
+        usuario.setVersionPoliticaDatos("v1-2026-04");
+
         usuarioService.registrarNuevo(usuario);
-        return "redirect:/login?registroExitoso";
+        return "redirect:/login?registrado=1";
     }
 
+    @GetMapping("/consentimiento-datos")
+    public String mostrarConsentimientoDatos(Authentication authentication) {
+        Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(authentication);
+
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        if (usuario.isAceptaTratamientoDatos()) {
+            return "redirect:/dashboard";
+        }
+
+        return "consentimiento-datos";
+    }
+
+    @PostMapping("/consentimiento-datos/aceptar")
+    public String aceptarConsentimientoDatos(Authentication authentication) {
+        Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(authentication);
+
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        usuario.setAceptaTratamientoDatos(true);
+        usuario.setFechaAceptacionDatos(LocalDateTime.now());
+        usuario.setVersionPoliticaDatos("v1-2026-04");
+        usuarioService.guardar(usuario);
+
+        return "redirect:/dashboard";
+    }
+
+    @GetMapping("/politica-datos")
+    public String politicaDatos() {
+        return "politica-datos";
+    }
 
     @GetMapping("/")
     public String redirigirInicio() {
-        return "redirect:/login"; // o "redirect:/login" si quieres que vaya al login primero
+        return "redirect:/login";
     }
 }

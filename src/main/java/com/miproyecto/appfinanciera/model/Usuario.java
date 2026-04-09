@@ -1,6 +1,8 @@
 package com.miproyecto.appfinanciera.model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -22,6 +24,13 @@ public class Usuario {
 
     private String proveedor;
 
+    @Column(nullable = false)
+    private boolean aceptaTratamientoDatos = false;
+
+    private LocalDateTime fechaAceptacionDatos;
+
+    private String versionPoliticaDatos;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "usuarios_roles",
@@ -30,31 +39,97 @@ public class Usuario {
     )
     private Set<Rol> roles = new HashSet<>();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getApellido() { return apellido; }
-    public void setApellido(String apellido) { this.apellido = apellido; }
+    public String getNombre() {
+        return nombre;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
-    public String getContrasena() { return contrasena; }
-    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+    public String getApellido() {
+        return apellido;
+    }
 
-    public boolean isHabilitado() { return habilitado; }
-    public void setHabilitado(boolean habilitado) { this.habilitado = habilitado; }
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
 
-    public Set<Rol> getRoles() { return roles; }
-    public void setRoles(Set<Rol> roles) { this.roles = roles; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getProveedor() { return proveedor; }
-    public void setProveedor(String proveedor) { this.proveedor = proveedor; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
+
+    public boolean isHabilitado() {
+        return habilitado;
+    }
+
+    public void setHabilitado(boolean habilitado) {
+        this.habilitado = habilitado;
+    }
+
+    public Set<Rol> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Rol> roles) {
+        this.roles = roles;
+    }
+
+    public String getProveedor() {
+        return proveedor;
+    }
+
+    public void setProveedor(String proveedor) {
+        this.proveedor = proveedor;
+    }
+
+    public boolean isAceptaTratamientoDatos() {
+        return aceptaTratamientoDatos;
+    }
+
+    public void setAceptaTratamientoDatos(boolean aceptaTratamientoDatos) {
+        this.aceptaTratamientoDatos = aceptaTratamientoDatos;
+    }
+
+    public LocalDateTime getFechaAceptacionDatos() {
+        return fechaAceptacionDatos;
+    }
+
+    public void setFechaAceptacionDatos(LocalDateTime fechaAceptacionDatos) {
+        this.fechaAceptacionDatos = fechaAceptacionDatos;
+    }
+
+    public String getVersionPoliticaDatos() {
+        return versionPoliticaDatos;
+    }
+
+    public void setVersionPoliticaDatos(String versionPoliticaDatos) {
+        this.versionPoliticaDatos = versionPoliticaDatos;
+    }
 
     public String getNombreCompleto() {
-        return nombre + " " + apellido;
+        String n = nombre != null ? nombre : "";
+        String a = apellido != null ? apellido : "";
+        return (n + " " + a).trim();
     }
 }

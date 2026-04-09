@@ -2,137 +2,511 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>App Financiera - Dashboard</title>
+    <title>Zenfi - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="icon" type="image/png" href="/img/zenfi_icon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
     <style>
         body {
-            background-color: #f8f9fa;
-            font-size: 1.1rem;
-        }
-
-        h2, h5 {
-            font-size: 1.4rem;
-        }
-
-        .card-custom {
-            padding: 2rem;
-            font-size: 1.15rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            min-height: 120px;
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 253, 0.10), transparent 24%),
+                radial-gradient(circle at bottom right, rgba(25, 135, 84, 0.08), transparent 28%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: #0f172a;
         }
 
         .main-content {
             margin-left: 260px;
             padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .dashboard-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-card {
+            border: none;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.10);
+            background: #ffffff;
+            margin-bottom: 2rem;
+        }
+
+        .hero-left {
+            background: linear-gradient(160deg, #0d6efd 0%, #0b5ed7 45%, #084298 100%);
+            color: #ffffff;
+            padding: 2.5rem;
+            position: relative;
+            min-height: 100%;
+        }
+
+        .hero-left::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            top: -65px;
+            right: -70px;
+        }
+
+        .hero-left::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            bottom: -40px;
+            left: -40px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-logo {
+            max-width: 170px;
+            height: auto;
+            display: block;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.18));
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero-text {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 0;
+        }
+
+        .hero-right {
+            padding: 2rem;
+            background: #ffffff;
+        }
+
+        .hero-mini-card {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 1.25rem;
+            height: 100%;
+        }
+
+        .hero-mini-card h6 {
+            font-size: 0.92rem;
+            color: #64748b;
+            margin-bottom: 0.45rem;
+            font-weight: 600;
+        }
+
+        .hero-mini-card p {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+
+        .summary-card {
+            border: none;
+            border-radius: 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            min-height: 145px;
+        }
+
+        .summary-card .card-body {
+            padding: 1.4rem;
+        }
+
+        .summary-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .summary-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.18);
+        }
+
+        .bg-zen-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #ffffff;
+        }
+
+        .bg-zen-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #ffffff;
+        }
+
+        .bg-zen-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+        }
+
+        .content-card {
+            border: none;
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            height: 100%;
+        }
+
+        .content-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title-zen {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.9rem;
+        }
+
+        .tip-card {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
+            border: 1px solid #bae6fd;
+        }
+
+        .progress-card {
+            background: linear-gradient(135deg, #dbeafe 0%, #f8fafc 100%);
+            border: 1px solid #bfdbfe;
+        }
+
+        .soft-btn {
+            border-radius: 14px;
+            font-weight: 600;
+            padding: 0.65rem 1rem;
         }
 
         #tipFinanciero {
-            transition: opacity 0.4s ease;
+            transition: opacity 0.35s ease;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .news-card {
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .news-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.10);
+        }
+
+        .news-image {
+            width: 100%;
+            height: 185px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .news-body {
+            padding: 1rem 1rem 1.1rem 1rem;
+        }
+
+        .news-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #0d6efd;
+            background: #eff6ff;
+            border-radius: 999px;
+            padding: 0.35rem 0.7rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .news-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.5;
+            margin-bottom: 0.7rem;
+        }
+
+        .news-source {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .empty-news {
+            border: 1px dashed #cbd5e1;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 1.25rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.25rem;
+            }
+
+            .hero-left,
+            .hero-right {
+                padding: 1.5rem;
+            }
+
+            .hero-logo {
+                max-width: 135px;
+            }
+
+            .hero-title {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .summary-value {
+                font-size: 1.35rem;
+            }
+
+            .news-image {
+                height: 165px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<!-- Sidebar incluida como fragmento -->
 <div th:replace="fragments/sidebar :: sidebar"></div>
 
-<!-- Contenido principal -->
 <div class="main-content">
-    <div class="container-fluid">
-        <h2 class="fw-bold mb-4">¡Bienvenido de nuevo!</h2>
+    <div class="dashboard-shell">
 
-        <!-- Tarjetas de resumen -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card card-custom p-3 bg-warning text-white">
-                    <h5>Ahorro actual</h5>
-                    <p class="h4 fw-bold" th:text="${totalAhorroFormateado}">---</p>
+        <div class="card hero-card">
+            <div class="row g-0">
+                <div class="col-lg-5 hero-left d-flex align-items-center">
+                    <div class="hero-content">
+                        <img src="/img/zenfi_logo.png" alt="Zenfi" class="hero-logo">
+                        <h1 class="hero-title">Bienvenido de nuevo a Zenfi</h1>
+                        <p class="hero-text">
+                            Aprende, organiza tus finanzas y mantén el control de tu progreso en un solo lugar.
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card card-custom p-3 bg-danger text-white">
-                    <h5>Deudas</h5>
-                    <p class="h4 fw-bold" th:text="${totalDeudasFormateado}">---</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card card-custom p-3 bg-success text-white">
-                    <h5>Meta activa</h5>
-                    <p class="h4 fw-bold" th:text="${nombreMetaActiva}">---</p>
+
+                <div class="col-lg-7 hero-right">
+                    <div class="row g-3 h-100">
+                        <div class="col-md-4">
+                            <div class="hero-mini-card">
+                                <h6>Estado general</h6>
+                                <p>Tu resumen financiero del día</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="hero-mini-card">
+                                <h6>Educación</h6>
+                                <p><span th:text="${leccionesCompletadas}">0</span> lecciones completadas</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="hero-mini-card">
+                                <h6>Plataforma</h6>
+                                <p>Zenfi • Aprende • Juega • Crece</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Consejos y noticias -->
-        <div class="row">
-            <!-- Tip financiero -->
-            <div class="col-lg-6 mb-4">
-                <div class="card card-custom p-3 bg-info text-dark">
-                    <h5>📌 Tip financiero del día</h5>
-                    <p id="tipFinanciero" th:text="${tipFinanciero}">No gastes más de lo que ganas.</p>
-                    <button class="btn btn-dark btn-sm mt-2" onclick="cambiarConsejo()">Ver otro</button>
-                </div>
-            </div>
+        <h2 class="section-title">Resumen financiero</h2>
+
+        <div class="row g-4 mb-4">
             <div class="col-md-4">
-                <div class="card card-custom p-3 bg-primary text-white">
-                    <h5>Progreso educativo</h5>
-                    <p class="mb-1">
-                        Lecciones completadas:
-                        <span th:text="${leccionesCompletadas}">0</span>/<span th:text="${totalLecciones}">0</span>
-                    </p>
-                    <a th:href="@{/aprende}" class="btn btn-light btn-sm mt-2">Ir a Aprende</a>
+                <div class="card summary-card bg-zen-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="summary-label">Ahorro actual</div>
+                            <div class="summary-icon">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                        <div class="summary-value" th:text="${totalAhorroFormateado}">---</div>
+                    </div>
                 </div>
             </div>
 
-
-            <!-- Depuración para verificar que las noticias están siendo pasadas -->
-            <div th:if="${noticias == null || noticias.isEmpty()}">
-                <p>No se encontraron noticias.</p>
+            <div class="col-md-4">
+                <div class="card summary-card bg-zen-danger">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="summary-label">Deudas</div>
+                            <div class="summary-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                        </div>
+                        <div class="summary-value" th:text="${totalDeudasFormateado}">---</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="row g-4">
-                <div class="col-6 col-md-4" th:each="noticia : ${noticias}" th:if="${noticia.enlace != null} and ${noticia.titulo.length() > 10}">
-                    <a class="feature-card news-card fw-bold d-block text-decoration-none text-dark h-100"
-                       th:href="${noticia.enlace}" target="_blank">
-                        <div>
-                            <img src="https://img.lalr.co/cms/2025/04/07185145/ancla_trump_colcap_p15.jpg?" class="img-fluid rounded mb-2 w-100" />
+            <div class="col-md-4">
+                <div class="card summary-card bg-zen-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="summary-label">Meta activa</div>
+                            <div class="summary-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
                         </div>
-                        <div>
-                            📰 <span th:text="${noticia.titulo}">Noticia ejemplo</span>
-                        </div>
-                        <div class="mt-2 small text-muted">
-                            Extraído de La República
-                        </div>
-                    </a>
+                        <div class="summary-value" th:text="${nombreMetaActiva}">---</div>
+                    </div>
                 </div>
-                <!-- Noticia 2 (nueva agregada) -->
-                <div class="col-6 col-md-4">
-                    <a class="feature-card news-card fw-bold d-block text-decoration-none text-dark h-100"
-                       href="https://www.larepublica.co/finanzas/ban100-banco-w-y-pichincha-entre-los-bancos-con-las-tasas-mas-rentables-para-cdt-3994668"
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="card content-card tip-card">
+                    <div class="card-body">
+                        <h5 class="card-title-zen">📌 Tip financiero del día</h5>
+                        <p id="tipFinanciero" th:text="${tipFinanciero}">
+                            No gastes más de lo que ganas.
+                        </p>
+                        <button class="btn btn-dark soft-btn btn-sm mt-2" onclick="cambiarConsejo()">
+                            Ver otro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card content-card progress-card">
+                    <div class="card-body">
+                        <h5 class="card-title-zen">Progreso educativo</h5>
+                        <p class="mb-2 text-secondary">
+                            Lecciones completadas:
+                            <strong>
+                                <span th:text="${leccionesCompletadas}">0</span>/<span th:text="${totalLecciones}">0</span>
+                            </strong>
+                        </p>
+
+                        <div class="progress mb-3" style="height: 10px; border-radius: 999px;">
+                            <div class="progress-bar bg-primary"
+                                 role="progressbar"
+                                 th:style="${'width:' + (totalLecciones > 0 ? (leccionesCompletadas * 100 / totalLecciones) : 0) + '%;'}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+
+                        <a th:href="@{/aprende}" class="btn btn-primary soft-btn btn-sm">
+                            Ir a Aprende
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Noticias y actualidad</h2>
+
+        <div th:if="${noticias == null || noticias.isEmpty()}" class="empty-news mb-4">
+            No se encontraron noticias en este momento.
+        </div>
+
+        <div class="row g-4">
+            <th:block th:if="${noticias != null}">
+                <div class="col-sm-6 col-lg-4"
+                     th:each="noticia : ${noticias}">
+                    <a class="text-decoration-none"
+                       th:if="${noticia.enlace != null and noticia.titulo != null and noticia.titulo.length() > 10}"
+                       th:href="${noticia.enlace}"
                        target="_blank">
-                        <div>
-                            <img src="https://img.lalr.co/cms/2024/11/08073231/WEB_Fin_TasaRentabilidadCDT.jpg?size=sm" class="img-fluid rounded mb-2 w-100" />
-                        </div>
-                        <div>
-                            💰 Bancos con tasas más rentables para CDT
-                        </div>
-                        <div class="mt-2 small text-muted">
-                            Extraído de La República
+                        <div class="news-card">
+                            <img class="news-image"
+                                 src="https://img.lalr.co/cms/2025/04/07185145/ancla_trump_colcap_p15.jpg?"
+                                 alt="Noticia financiera">
+                            <div class="news-body">
+                                <div class="news-badge">
+                                    <i class="fas fa-newspaper"></i>
+                                    <span>Actualidad financiera</span>
+                                </div>
+                                <div class="news-title" th:text="${noticia.titulo}">
+                                    Noticia ejemplo
+                                </div>
+                                <div class="news-source">Extraído de La República</div>
+                            </div>
                         </div>
                     </a>
                 </div>
+            </th:block>
+
+            <div class="col-sm-6 col-lg-4">
+                <a class="text-decoration-none"
+                   href="https://www.larepublica.co/finanzas/ban100-banco-w-y-pichincha-entre-los-bancos-con-las-tasas-mas-rentables-para-cdt-3994668"
+                   target="_blank">
+                    <div class="news-card">
+                        <img class="news-image"
+                             src="https://img.lalr.co/cms/2024/11/08073231/WEB_Fin_TasaRentabilidadCDT.jpg?size=sm"
+                             alt="CDT">
+                        <div class="news-body">
+                            <div class="news-badge">
+                                <i class="fas fa-coins"></i>
+                                <span>Mercado</span>
+                            </div>
+                            <div class="news-title">
+                                Bancos con tasas más rentables para CDT
+                            </div>
+                            <div class="news-source">Extraído de La República</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
     </div>
 </div>
 
-<!-- Script para cambiar consejo financiero -->
 <script>
     function cambiarConsejo() {
         fetch('/api/consejos/aleatorio')
@@ -143,10 +517,10 @@
                 setTimeout(() => {
                     p.textContent = data;
                     p.style.opacity = 1;
-                }, 300);
+                }, 250);
             });
     }
 </script>
-</div>
+
 </body>
 </html>

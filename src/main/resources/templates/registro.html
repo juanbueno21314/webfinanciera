@@ -1,39 +1,401 @@
-<!-- registro.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro - App Financiera</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+    <title>Registro - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
-    <h3 class="text-center mb-4">Registro</h3>
-    <form th:action="@{/registro}" method="post" th:object="${usuario}">
-        <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" th:value="*{nombre}" required>
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 253, 0.12), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(25, 135, 84, 0.10), transparent 30%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-wrapper {
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+            background: #ffffff;
+        }
+
+        .auth-left {
+            background: linear-gradient(160deg, #0d6efd 0%, #0b5ed7 45%, #084298 100%);
+            color: #fff;
+            padding: 3rem 2.5rem;
+            position: relative;
+        }
+
+        .auth-left::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -60px;
+            right: -60px;
+        }
+
+        .auth-left::after {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            bottom: -50px;
+            left: -40px;
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1.8rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logo-box {
+            width: 100%;
+            max-width: 260px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-auth {
+            max-width: 100%;
+            max-height: 145px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.18));
+        }
+        .auth-left h2 {
+            font-weight: 700;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-left p,
+        .feature-list {
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 1.5rem;
+            margin-bottom: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .feature-list i {
+            font-size: 1rem;
+            margin-top: 0.1rem;
+        }
+
+        .auth-right {
+            padding: 3rem 2.5rem;
+            background: #ffffff;
+        }
+
+        .auth-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.35rem;
+        }
+
+        .auth-subtitle {
+            color: #64748b;
+            margin-bottom: 1.75rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.45rem;
+        }
+
+        .input-group-text {
+            background: #f8fafc;
+            border-right: none;
+            color: #64748b;
+            border-radius: 14px 0 0 14px;
+        }
+
+        .form-control {
+            border-left: none;
+            border-radius: 0 14px 14px 0;
+            padding: 0.85rem 1rem;
+            background: #fcfdff;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #86b7fe;
+            background: #ffffff;
+        }
+
+        .input-group {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px #dee2e6;
+        }
+
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
+        }
+
+        .btn-primary {
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.18);
+        }
+
+        .btn-outline-secondary {
+            border-radius: 14px;
+            font-weight: 600;
+        }
+
+        .register-text {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .register-text a {
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-check {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.9rem 1rem 0.9rem 2.2rem;
+        }
+
+        .form-check-label {
+            color: #475569;
+            font-size: 0.92rem;
+        }
+
+        .form-check-input {
+            margin-top: 0.3rem;
+        }
+
+        .alert-stack {
+            max-width: 1050px;
+            margin: 0 auto 1rem auto;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        @media (max-width: 991.98px) {
+            .auth-left {
+                padding: 2.25rem 2rem;
+            }
+
+            .auth-right {
+                padding: 2.25rem 2rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .auth-left {
+                display: none;
+            }
+
+            .auth-right {
+                padding: 2rem 1.5rem;
+            }
+
+            .auth-card {
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid auth-wrapper d-flex align-items-center justify-content-center">
+    <div class="w-100" style="max-width: 1050px;">
+
+        <div class="alert-stack">
+            <div th:if="${mensajeErrorDatos}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <span th:text="${mensajeErrorDatos}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="apellido" class="form-label">Apellido</label>
-            <input type="text" class="form-control" id="apellido" name="apellido" th:value="*{apellido}" required>
+
+        <div class="card auth-card">
+            <div class="row g-0">
+                <div class="col-lg-5 auth-left d-flex flex-column justify-content-center">
+                    <div class="brand-logo">
+                        <div class="logo-box">
+                            <img src="/img/zenfi_logo.png" alt="Zenfi" class="logo-auth">
+                        </div>
+                    </div>
+
+                    <h2>Crea tu cuenta en<br>Zenfi</h2>
+                    <p class="mt-3 mb-0">
+                        Aprende, organiza tus finanzas y construye una relación más tranquila con tu dinero.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Gestiona ahorro, presupuesto, ingresos y deudas.</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Accede a contenido educativo y quizzes dentro de la app.</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Controla tu información financiera en un solo lugar.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-7 auth-right">
+                    <div class="mb-4">
+                        <h3 class="auth-title">Registro</h3>
+                        <p class="auth-subtitle">Completa tus datos para crear tu cuenta.</p>
+                    </div>
+
+                    <form th:action="@{/registro}" method="post" th:object="${usuario}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" th:value="*{nombre}" required placeholder="Tu nombre">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="apellido" class="form-label">Apellido</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person-vcard"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" th:value="*{apellido}" required placeholder="Tu apellido">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo electrónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" th:value="*{email}" required placeholder="correo@ejemplo.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contrasena" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="contrasena" name="contrasena" required placeholder="Crea una contraseña segura">
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="aceptaTratamientoDatos" name="aceptaTratamientoDatos" required>
+                            <label class="form-check-label" for="aceptaTratamientoDatos">
+                                Autorizo el tratamiento de mis datos personales conforme a la
+                                <a th:href="@{/politica-datos}" target="_blank">Política de Tratamiento de Datos</a>.
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#modalDatos">
+                                Ver resumen del tratamiento de datos
+                            </button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+                    </form>
+
+                    <p class="mt-4 text-center register-text">
+                        ¿Ya tienes cuenta? <a th:href="@{/login}">Inicia sesión aquí</a>
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Correo Electrónico</label>
-            <input type="email" class="form-control" id="email" name="email" th:value="*{email}" required>
-        </div>
-        <div class="mb-3">
-            <label for="contrasena" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="contrasena" name="contrasena" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-    </form>
-    <p class="text-center mt-3">
-        ¿Ya tienes cuenta? <a th:href="@{/login}">Inicia sesión aquí</a>
-    </p>
+    </div>
 </div>
 
+<div class="modal fade" id="modalDatos" tabindex="-1" aria-labelledby="modalDatosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDatosLabel">Resumen del tratamiento de datos personales</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>En Zenfi trataremos tus datos personales para:</p>
+                <ul>
+                    <li>crear y administrar tu cuenta;</li>
+                    <li>guardar información de ahorro, presupuesto, ingresos y deudas;</li>
+                    <li>mostrar análisis, progreso y recomendaciones dentro de la aplicación;</li>
+                    <li>atender solicitudes relacionadas con tus datos personales.</li>
+                </ul>
+                <p>
+                    Puedes consultar la política completa en
+                    <a th:href="@{/politica-datos}" target="_blank">este enlace</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

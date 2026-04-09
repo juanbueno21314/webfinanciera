@@ -4,7 +4,8 @@ import com.miproyecto.appfinanciera.model.Usuario;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 public class CustomOAuth2User implements OAuth2User {
 
@@ -28,7 +29,10 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public String getName() {
-        return usuario.getNombre();
+        if (usuario.getNombreCompleto() != null && !usuario.getNombreCompleto().isBlank()) {
+            return usuario.getNombreCompleto();
+        }
+        return usuario.getEmail();
     }
 
     public String getEmail() {
@@ -39,4 +43,3 @@ public class CustomOAuth2User implements OAuth2User {
         return usuario;
     }
 }
-

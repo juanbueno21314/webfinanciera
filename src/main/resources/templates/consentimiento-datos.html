@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Autorización de tratamiento de datos - App Financiera</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 253, 0.12), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(25, 135, 84, 0.10), transparent 30%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-wrapper {
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+            background: #ffffff;
+        }
+
+        .auth-left {
+            background: linear-gradient(160deg, #0d6efd 0%, #0b5ed7 45%, #084298 100%);
+            color: #fff;
+            padding: 3rem 2.5rem;
+            position: relative;
+        }
+
+        .auth-left::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -60px;
+            right: -60px;
+        }
+
+        .auth-left::after {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            bottom: -50px;
+            left: -40px;
+        }
+
+        .brand-badge {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(6px);
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .auth-left h2 {
+            font-weight: 700;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-left p,
+        .feature-list {
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 1.5rem;
+            margin-bottom: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .feature-list i {
+            font-size: 1rem;
+            margin-top: 0.1rem;
+        }
+
+        .auth-right {
+            padding: 3rem 2.5rem;
+            background: #ffffff;
+        }
+
+        .auth-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.35rem;
+        }
+
+        .auth-subtitle {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .info-box p {
+            color: #475569;
+            margin-bottom: 0.9rem;
+        }
+
+        .info-box ul {
+            padding-left: 1.1rem;
+            color: #475569;
+        }
+
+        .info-box li {
+            margin-bottom: 0.55rem;
+        }
+
+        .btn-primary {
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.18);
+        }
+
+        .btn-outline-secondary {
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+        }
+
+        .link-politica {
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 991.98px) {
+            .auth-left {
+                padding: 2.25rem 2rem;
+            }
+
+            .auth-right {
+                padding: 2.25rem 2rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .auth-left {
+                display: none;
+            }
+
+            .auth-right {
+                padding: 2rem 1.5rem;
+            }
+
+            .auth-card {
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid auth-wrapper d-flex align-items-center justify-content-center">
+    <div class="w-100" style="max-width: 1050px;">
+        <div class="card auth-card">
+            <div class="row g-0">
+                <div class="col-lg-5 auth-left d-flex flex-column justify-content-center">
+                    <div class="brand-badge">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <h2>Protección y uso<br>de tus datos</h2>
+                    <p class="mt-3 mb-0">
+                        Antes de continuar, necesitamos tu autorización para tratar la información que registrarás dentro de la plataforma.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Tu información se usa para administrar tu cuenta y mostrar tus datos financieros dentro de la app.</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Podrás consultar la política y conocer tus derechos sobre el tratamiento de datos personales.</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>La autorización queda registrada para fines de trazabilidad y cumplimiento.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-7 auth-right">
+                    <div class="mb-4">
+                        <h3 class="auth-title">Autorización de tratamiento de datos</h3>
+                        <p class="auth-subtitle">
+                            Para continuar usando App Financiera, debes aceptar el tratamiento de tus datos personales.
+                        </p>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>Usaremos tus datos para:</strong></p>
+                        <ul>
+                            <li>crear y administrar tu cuenta;</li>
+                            <li>almacenar y mostrar información de ahorro, presupuesto, ingresos y deudas;</li>
+                            <li>presentar análisis, progreso y recomendaciones dentro de la app;</li>
+                            <li>atender solicitudes relacionadas con tus datos personales.</li>
+                        </ul>
+                    </div>
+
+                    <p class="text-secondary mb-4">
+                        Puedes consultar la política completa aquí:
+                        <a class="link-politica" th:href="@{/politica-datos}" target="_blank">Política de Tratamiento de Datos</a>
+                    </p>
+
+                    <form th:action="@{/consentimiento-datos/aceptar}" method="post" class="d-grid gap-3">
+                        <button type="submit" class="btn btn-primary">Acepto y continuar</button>
+                        <a th:href="@{/logout}" class="btn btn-outline-secondary">Salir</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
