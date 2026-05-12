@@ -1,200 +1,136 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Modo Desafío - Finanzas</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Modo Desafío - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to right, #f7f8fc, #dbeafe);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .desafio-box {
-            max-width: 750px;
-            margin: auto;
-            padding: 3rem;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-            animation: fadeIn 0.6s ease-in;
-        }
-        h3 {
-            font-size: 2rem;
-            color: #dc3545;
-            margin-bottom: 1.5rem;
-            font-weight: bold;
-        }
-        .question {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-        .btn-game {
-            width: 45%;
-            padding: 12px;
-            font-size: 1.1rem;
-            border-radius: 12px;
-        }
-        .feedback {
-            font-size: 1.1rem;
-            margin-top: 1.5rem;
-            min-height: 60px;
-        }
-        .timer {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #dc3545;
-        }
-        .btn-warning {
-            margin-top: 1rem;
-        }
-        .fade {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .fade.show {
-            opacity: 1;
-        }
+        body { background: radial-gradient(circle at top left,rgba(220,38,38,.07),transparent 28%),radial-gradient(circle at bottom right,rgba(13,110,253,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .game-box { background:#fff; border-radius:24px; box-shadow:0 12px 36px rgba(15,23,42,.1); padding:2.5rem; width:100%; max-width:680px; }
+        .timer-ring { width:72px; height:72px; border-radius:50%; border:4px solid #fee2e2; background:#fff; display:flex; align-items:center; justify-content:center; font-size:1.4rem; font-weight:700; color:#dc2626; transition:border-color .5s; }
+        .timer-ring.urgent { border-color:#dc2626; background:#fff5f5; animation:pulse .5s infinite alternate; }
+        @keyframes pulse{from{box-shadow:0 0 0 0 rgba(220,38,38,.3)}to{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
+        .question-text { font-size:1.2rem; font-weight:600; line-height:1.5; min-height:80px; }
+        .btn-answer { width:48%; padding:.85rem; font-size:1rem; font-weight:600; border-radius:14px; border:2px solid #e2e8f0; background:#fff; cursor:pointer; transition:all .2s; }
+        .btn-answer:hover:not(:disabled) { border-color:#0d6efd; background:#eff6ff; }
+        .btn-answer.correct { background:#dcfce7; border-color:#16a34a; color:#166534; }
+        .btn-answer.incorrect { background:#fee2e2; border-color:#dc2626; color:#991b1b; }
+        .feedback-box { border-radius:14px; padding:1rem 1.25rem; margin-top:1.25rem; font-size:.93rem; line-height:1.5; }
+        .btn-zen { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
+        @media(max-width:991px){.main-content{margin-left:0}}
+        @media(max-width:576px){.btn-answer{width:100%;margin-bottom:.5rem}}
     </style>
 </head>
 <body>
-
-<div class="container py-5">
-    <div class="desafio-box text-center fade show" id="desafio">
-        <h3>⚡ Modo Desafío</h3>
-        <p class="timer" id="temporizador">Tiempo restante: 10s</p>
-        <p class="question" id="pregunta">Cargando pregunta...</p>
-
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <button class="btn btn-success btn-game" onclick="responder(true)">✅ Verdadero</button>
-            <button class="btn btn-danger btn-game" onclick="responder(false)">❌ Falso</button>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+    <div class="game-box text-center" id="desafio">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h4 class="fw-bold mb-0">⚡ Modo Desafío</h4>
+                <p class="text-muted mb-0" style="font-size:.82rem;" id="contador">Pregunta 1 de 5</p>
+            </div>
+            <div class="timer-ring" id="timer">10</div>
         </div>
 
-        <p id="feedback" class="feedback"></p>
+        <p class="question-text mb-4" id="pregunta">Cargando pregunta...</p>
+
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <button class="btn-answer" id="btnVerdadero" onclick="responder(true)">✅ Verdadero</button>
+            <button class="btn-answer" id="btnFalso" onclick="responder(false)">❌ Falso</button>
+        </div>
+
+        <div id="feedback" class="feedback-box d-none"></div>
+
+        <div class="text-center mt-4">
+            <a href="/juegos" class="btn btn-zen btn-outline-secondary btn-sm">← Volver a juegos</a>
+        </div>
     </div>
 </div>
 
 <script>
-    let preguntas = [
-        {
-            texto: "Usar la tarjeta de crédito para todo es siempre una buena estrategia de ahorro.",
-            respuesta: false,
-            explicacion: "Usarla en exceso puede generar deudas por intereses altos."
-        },
-        {
-            texto: "Tener un fondo de emergencia te protege en momentos imprevistos.",
-            respuesta: true,
-            explicacion: "Es clave para evitar endeudarse cuando ocurre algo inesperado."
-        },
-        {
-            texto: "Comprar en cuotas sin intereses es lo mismo que pagar al contado.",
-            respuesta: false,
-            explicacion: "Aunque no hay intereses, te comprometes a pagos futuros que afectan tu flujo de caja."
-        },
-        {
-            texto: "Guardar el 10% de tu ingreso cada mes es una buena meta de ahorro.",
-            respuesta: true,
-            explicacion: "Ahorrar un porcentaje fijo ayuda a crear hábitos financieros."
-        },
-        {
-            texto: "Invertir siempre es riesgoso y se debe evitar si eres joven.",
-            respuesta: false,
-            explicacion: "Mientras más joven, más tiempo tienes para asumir riesgos y aprender."
-        }
-    ];
+    const preguntas = [
+        {texto:"Usar la tarjeta de crédito para todo es siempre una buena estrategia de ahorro.",respuesta:false,explicacion:"Usarla en exceso puede generar deudas por intereses altos."},
+        {texto:"Tener un fondo de emergencia te protege en momentos imprevistos.",respuesta:true,explicacion:"Es clave para evitar endeudarse cuando ocurre algo inesperado."},
+        {texto:"Comprar en cuotas sin intereses es lo mismo que pagar al contado.",respuesta:false,explicacion:"Aunque no hay intereses, te comprometes a pagos futuros que afectan tu flujo de caja."},
+        {texto:"Guardar el 10% de tu ingreso cada mes es una buena meta de ahorro.",respuesta:true,explicacion:"Ahorrar un porcentaje fijo ayuda a crear hábitos financieros."},
+        {texto:"Invertir siempre es riesgoso y se debe evitar si eres joven.",respuesta:false,explicacion:"Mientras más joven, más tiempo tienes para asumir riesgos y aprender."}
+    ].sort(()=>Math.random()-.5);
 
-    preguntas = preguntas.sort(() => Math.random() - 0.5);
+    let index=0, aciertos=0, tiempo=10, intervalo;
 
-    let index = 0;
-    let aciertos = 0;
-    let tiempo = 10;
-    let intervalo;
-
-    function iniciarTemporizador() {
-        tiempo = 10;
-        document.getElementById("temporizador").textContent = `Tiempo restante: ${tiempo}s`;
-        intervalo = setInterval(() => {
+    function iniciarTemporizador(){
+        tiempo=10;
+        const timerEl=document.getElementById("timer");
+        timerEl.textContent=tiempo;
+        timerEl.classList.remove("urgent");
+        clearInterval(intervalo);
+        intervalo=setInterval(()=>{
             tiempo--;
-            document.getElementById("temporizador").textContent = `Tiempo restante: ${tiempo}s`;
-            if (tiempo <= 0) {
-                clearInterval(intervalo);
-                mostrarFeedback(false, true);
-            }
-        }, 1000);
+            timerEl.textContent=tiempo;
+            if(tiempo<=3)timerEl.classList.add("urgent");
+            if(tiempo<=0){clearInterval(intervalo);mostrarFeedback(false,true);}
+        },1000);
     }
 
-    function cargarPregunta() {
-        const p = preguntas[index];
-        document.getElementById("pregunta").textContent = p.texto;
-        document.getElementById("feedback").textContent = "";
-        document.getElementById("desafio").classList.remove("show");
-        setTimeout(() => {
-            document.getElementById("desafio").classList.add("show");
-        }, 100);
+    function cargarPregunta(){
+        document.getElementById("pregunta").textContent=preguntas[index].texto;
+        document.getElementById("contador").textContent=`Pregunta ${index+1} de ${preguntas.length}`;
+        document.getElementById("feedback").classList.add("d-none");
+        [document.getElementById("btnVerdadero"),document.getElementById("btnFalso")].forEach(b=>{b.disabled=false;b.className="btn-answer";});
         iniciarTemporizador();
     }
 
-    function responder(opcion) {
+    function responder(opcion){
         clearInterval(intervalo);
-        const actual = preguntas[index];
-        const correcto = actual.respuesta === opcion;
-        mostrarFeedback(correcto);
+        mostrarFeedback(preguntas[index].respuesta===opcion);
     }
 
-    function mostrarFeedback(correcto, porTiempo = false) {
-        const actual = preguntas[index];
-        const feedback = document.getElementById("feedback");
+    function mostrarFeedback(correcto,porTiempo=false){
+        const actual=preguntas[index];
+        if(correcto)aciertos++;
+        document.getElementById("btnVerdadero").className="btn-answer "+(actual.respuesta?"correct":"incorrect");
+        document.getElementById("btnFalso").className="btn-answer "+(!actual.respuesta?"correct":"incorrect");
+        document.getElementById("btnVerdadero").disabled=true;
+        document.getElementById("btnFalso").disabled=true;
 
-        feedback.innerHTML = correcto
-            ? `✔️ <strong>Correcto:</strong> ${actual.explicacion}`
-            : `❌ <strong>${porTiempo ? 'Tiempo agotado.' : 'Incorrecto'}:</strong> ${actual.explicacion}`;
+        const fb=document.getElementById("feedback");
+        fb.classList.remove("d-none");
+        fb.style.cssText=correcto?"background:#dcfce7;color:#166534;border:1px solid #bbf7d0;":"background:#fee2e2;color:#991b1b;border:1px solid #fecaca;";
+        fb.innerHTML=correcto?`✔️ <strong>Correcto:</strong> ${actual.explicacion}`:`❌ <strong>${porTiempo?'Tiempo agotado':'Incorrecto'}:</strong> ${actual.explicacion}`;
 
-        if (correcto) aciertos++;
-
-        setTimeout(() => {
+        setTimeout(()=>{
             index++;
-            if (index < preguntas.length) {
-                cargarPregunta();
-            } else {
-                mostrarResultados();
-            }
-        }, 2500);
+            if(index<preguntas.length){cargarPregunta();}else{mostrarResultados();}
+        },2500);
     }
 
-    function mostrarResultados() {
-        const total = preguntas.length;
-        let mensaje = aciertos === total ? '🏆 ¡Eres un experto bajo presión!'
-                    : aciertos >= total / 2 ? '🎯 Buen intento, sigue practicando.'
-                    : '📘 Revisa las lecciones para mejorar.';
-
-        guardarPuntajeFinal("modo_desafio", aciertos);
-
-        document.querySelector(".desafio-box").innerHTML = `
-            <h3>🎉 Desafío completado</h3>
-            <p>Acertaste ${aciertos} de ${total} preguntas.</p>
-            <p>${mensaje}</p>
-            <a href="/juegos" class="btn btn-primary">Volver a minijuegos</a>
-        `;
+    function mostrarResultados(){
+        const nota=aciertos===preguntas.length?'🏆 ¡Eres un experto bajo presión!':aciertos>=3?'🎯 Buen intento, sigue practicando.':'📘 Revisa las lecciones para mejorar.';
+        guardarPuntajeFinal("modo_desafio",aciertos);
+        document.getElementById("desafio").innerHTML=`
+            <div class="py-3">
+                <div style="font-size:3.5rem;margin-bottom:1rem;">${aciertos===preguntas.length?'🏆':aciertos>=3?'🎯':'📘'}</div>
+                <h4 class="fw-bold">¡Desafío completado!</h4>
+                <p class="text-muted">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
+                <p>${nota}</p>
+                <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
+                    <a href="/juegos/desafio" class="btn btn-zen btn-danger">Intentar de nuevo</a>
+                    <a href="/juegos" class="btn btn-zen btn-outline-secondary">Volver a juegos</a>
+                </div>
+            </div>`;
     }
 
-     function guardarPuntajeFinal(juego, puntaje) {
-        fetch('/api/puntajes/guardar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                juego: juego,
-                puntaje: puntaje
-            })
-        }).then(res => {
-            if (!res.ok) {
-                console.warn("⚠️ No se pudo guardar el puntaje.");
-            }
-        });
+    function guardarPuntajeFinal(juego,puntaje){
+        fetch('/api/puntajes/guardar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juego,puntaje})});
     }
+
     cargarPregunta();
 </script>
-
 </body>
 </html>

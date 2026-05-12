@@ -1,27 +1,182 @@
 <!-- src/main/resources/templates/fragments/sidebar.html -->
-
 <div th:fragment="sidebar" xmlns:th="http://www.w3.org/1999/xhtml">
-    <div class="sidebar position-fixed d-flex flex-column" style="width: 250px; height: 100vh; background-color: #343a40;">
-        <div class="p-4 text-white">
-            <h5 class="mb-0">💼 Mi FinanzApp</h5>
-            <small th:text="'Bienvenido, ' + ${nombre} + ' ' + ${apellido}">Bienvenido, Usuario</small>
-        </div>
-        <hr class="bg-secondary my-0">
+    <style>
+        .zen-sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        .zen-sidebar-logo {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .zen-sidebar-logo img {
+            max-width: 120px;
+            height: auto;
+        }
+        .zen-sidebar-user {
+            padding: 0.9rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+        .zen-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .zen-user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .zen-user-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .zen-nav {
+            flex: 1;
+            padding: 1rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .zen-nav-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.5rem 0.75rem 0.25rem;
+            margin-top: 0.25rem;
+        }
+        .zen-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+        .zen-nav a:hover {
+            background: #f1f5f9;
+            color: #0d6efd;
+        }
+        .zen-nav a i { width: 18px; text-align: center; font-size: 0.95rem; }
+        .zen-nav-ai {
+            margin-top: 0.25rem;
+        }
+        .zen-nav-ai a {
+            background: linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.05)) !important;
+            border: 1px solid rgba(13,110,253,0.2);
+            color: #0d6efd !important;
+            font-weight: 600 !important;
+        }
+        .zen-nav-ai a:hover {
+            background: linear-gradient(135deg, rgba(13,110,253,0.18), rgba(13,110,253,0.1)) !important;
+        }
+        .zen-ai-badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+            background: #0d6efd;
+            color: white;
+            border-radius: 999px;
+            padding: 1px 7px;
+        }
+        .zen-sidebar-footer {
+            padding: 0.75rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        .zen-sidebar-footer form button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.9rem;
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #64748b;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .zen-sidebar-footer form button:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+    </style>
 
-        <nav class="nav flex-column p-2">
-            <a class="nav-link text-white" th:href="@{/dashboard}"><i class="fas fa-home me-2"></i>Inicio</a>
-            <a class="nav-link text-white" th:href="@{/ahorro}"><i class="fas fa-piggy-bank me-2"></i>Ahorro</a>
-            <a class="nav-link text-white" th:href="@{/analisis}"><i class="fas fa-chart-line me-2"></i>Finanzas</a>
-            <a class="nav-link text-white" th:href="@{/presupuesto}"><i class="fas fa-wallet me-2"></i>Presupuesto</a>
-            <a class="nav-link text-white" th:href="@{/aprende}"><i class="fas fa-book-reader me-2"></i>Aprende</a>
-            <a class="nav-link text-white" th:href="@{/juegos}"><i class="fas fa-gamepad me-2"></i>Juegos</a>
+    <div class="zen-sidebar">
+        <!-- Logo -->
+        <div class="zen-sidebar-logo">
+            <a th:href="@{/dashboard}">
+                <img th:src="@{/img/zenfi_logo.png}" alt="Zenfi">
+            </a>
+        </div>
+
+        <!-- Usuario -->
+        <div class="zen-sidebar-user">
+            <div class="zen-avatar" th:text="${iniciales != null ? iniciales : 'ZF'}">ZF</div>
+            <div>
+                <div class="zen-user-name" th:text="${nombre != null ? nombre + ' ' + (apellido != null ? apellido : '') : 'Usuario'}">Usuario</div>
+                <div class="zen-user-sub">Mi cuenta</div>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <nav class="zen-nav">
+            <div class="zen-nav-label">Principal</div>
+            <a th:href="@{/dashboard}"><i class="fas fa-home"></i> Inicio</a>
+            <a th:href="@{/ahorro}"><i class="fas fa-piggy-bank"></i> Ahorro</a>
+            <a th:href="@{/analisis}"><i class="fas fa-chart-line"></i> Finanzas</a>
+            <a th:href="@{/presupuesto}"><i class="fas fa-wallet"></i> Presupuesto</a>
+
+            <div class="zen-nav-label">Aprendizaje</div>
+            <a th:href="@{/aprende}"><i class="fas fa-book-reader"></i> Aprende</a>
+            <a th:href="@{/juegos}"><i class="fas fa-gamepad"></i> Juegos</a>
+
+            <div class="zen-nav-label">Inteligencia Artificial</div>
+            <div class="zen-nav-ai">
+                <a th:href="@{/chat}">
+                    <i class="fas fa-robot"></i> Asistente IA
+                    <span class="zen-ai-badge">Nuevo</span>
+                </a>
+            </div>
         </nav>
 
-        <form th:action="@{/logout}" method="post" class="w-100">
-            <button type="submit" class="btn btn-outline-light w-100">
-                <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
-            </button>
-        </form>
+        <!-- Logout -->
+        <div class="zen-sidebar-footer">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
     </div>
 </div>
-

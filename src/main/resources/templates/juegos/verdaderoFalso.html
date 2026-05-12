@@ -1,128 +1,146 @@
-<!-- Verdadero o Falso - Modo Normal -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Verdadero o Falso - Finanzas</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Verdadero o Falso - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to bottom right, #e0f7fa, #fdfdfd);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .game-box { max-width: 700px; margin: auto; padding: 3rem; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 32px rgba(0,0,0,0.15); animation: fadeIn 0.6s ease-in; }
-        h3 { font-size: 2rem; color: #0d6efd; margin-bottom: 1rem; font-weight: bold; }
-        .progress-counter { font-weight: bold; color: #555; margin-bottom: 1rem; }
-        .question { font-size: 1.4rem; font-weight: 600; color: #343a40; margin-bottom: 2rem; }
-        .btn-game { width: 45%; padding: 12px; font-size: 1.1rem; font-weight: 500; border-radius: 12px; transition: transform 0.2s ease; }
-        .btn-game:hover { transform: scale(1.05); }
-        .btn-correct { background-color: #198754 !important; color: white; }
-        .btn-incorrect { background-color: #dc3545 !important; color: white; }
-        .feedback { font-size: 1.2rem; font-weight: 500; margin-top: 1.5rem; min-height: 60px; }
-        .fade { opacity: 0; transition: opacity 0.5s ease; }
-        .fade.show { opacity: 1; }
-        .btn-warning { font-weight: 500; border-radius: 10px; margin-top: 1rem; }
+        body { background: radial-gradient(circle at top left,rgba(13,110,253,.08),transparent 28%),radial-gradient(circle at bottom right,rgba(25,135,84,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .game-box { background:#fff; border-radius:24px; box-shadow:0 12px 36px rgba(15,23,42,.1); padding:2.5rem; width:100%; max-width:680px; }
+        .progress-bar-zen { height:8px; background:#e2e8f0; border-radius:999px; margin-bottom:1.5rem; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg,#0d6efd,#3b82f6); border-radius:999px; transition:width .4s ease; }
+        .question-text { font-size:1.25rem; font-weight:600; color:#0f172a; line-height:1.5; min-height:80px; }
+        .btn-answer { width:48%; padding:.85rem; font-size:1rem; font-weight:600; border-radius:14px; border:2px solid #e2e8f0; background:#fff; cursor:pointer; transition:all .2s; }
+        .btn-answer:hover:not(:disabled) { border-color:#0d6efd; background:#eff6ff; color:#0d6efd; transform:translateY(-2px); }
+        .btn-answer.correct { background:#dcfce7; border-color:#16a34a; color:#166534; }
+        .btn-answer.incorrect { background:#fee2e2; border-color:#dc2626; color:#991b1b; }
+        .feedback-box { border-radius:14px; padding:1rem 1.25rem; margin-top:1.25rem; min-height:60px; font-size:.95rem; line-height:1.5; }
+        .btn-next { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
+        .ai-badge { font-size:.75rem; background:#eff6ff; color:#1d4ed8; border-radius:8px; padding:.2rem .6rem; border:1px solid #bfdbfe; }
+        @media(max-width:991px){.main-content{margin-left:0}}
+        @media(max-width:576px){.btn-answer{width:100%;margin-bottom:.5rem}}
     </style>
 </head>
 <body>
-<div class="container py-5">
-    <div class="game-box text-center fade show" id="juego">
-        <h3>🧠 Verdadero o Falso</h3>
-        <p class="progress-counter" id="contador">Pregunta 1 de 4</p>
-        <p class="question" id="pregunta">Cargando...</p>
-        <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-            <button class="btn btn-success btn-game" onclick="responder(true)">✅ Verdadero</button>
-            <button class="btn btn-danger btn-game" onclick="responder(false)">❌ Falso</button>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+    <div class="game-box" id="juego">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <h4 class="fw-bold mb-0">🧠 Verdadero o Falso</h4>
+            <span class="ai-badge">🤖 Preguntas IA</span>
         </div>
-        <p id="feedback" class="feedback"></p>
-        <button class="btn btn-primary mt-4 d-none" id="btnSiguiente" onclick="siguiente()">Siguiente</button>
-        <div class="mt-4">
-            <a href="/juegos" class="btn btn-warning">← Volver a juegos</a>
+        <p class="text-muted mb-3" style="font-size:.85rem;" id="contador">⏳ Cargando preguntas...</p>
+
+        <div class="progress-bar-zen">
+            <div class="progress-fill" id="progreso" style="width:0%"></div>
+        </div>
+
+        <p class="question-text mb-4" id="pregunta">Preparando preguntas personalizadas con IA...</p>
+
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <button class="btn-answer" id="btnVerdadero" onclick="responder(true)">✅ Verdadero</button>
+            <button class="btn-answer" id="btnFalso" onclick="responder(false)">❌ Falso</button>
+        </div>
+
+        <div id="feedback" class="feedback-box d-none"></div>
+        <div class="text-center mt-3">
+            <button class="btn btn-next btn-primary d-none" id="btnSiguiente" onclick="siguiente()">Siguiente pregunta →</button>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/juegos" class="btn btn-next btn-outline-secondary btn-sm">← Volver a juegos</a>
         </div>
     </div>
 </div>
+
 <script>
-    let preguntas = [
-        { texto: "Ahorrar es guardar lo que sobra después de gastar.", respuesta: false, explicacion: "💡 Ahorrar debe ser lo primero que haces al recibir tu ingreso, no lo último." },
-        { texto: "Endeudarse no siempre es malo si sabes manejarlo bien.", respuesta: true, explicacion: "🎯 Las deudas bien manejadas pueden ayudarte a lograr metas importantes." },
-        { texto: "Tener un presupuesto mensual ayuda a controlar tus gastos.", respuesta: true, explicacion: "📊 Con un presupuesto sabes a dónde va tu dinero y tomas mejores decisiones." },
-        { texto: "Es mejor pagar solo el mínimo de la tarjeta de crédito.", respuesta: false, explicacion: "❌ Pagar solo el mínimo genera intereses altos y alarga la deuda." }
-    ];
-    preguntas = preguntas.sort(() => Math.random() - 0.5);
+    let preguntas = [];
     let index = 0;
     let aciertos = 0;
+
+    fetch('/api/juegos/preguntas?cantidad=5')
+        .then(res => res.json())
+        .then(data => {
+            preguntas = data.sort(() => Math.random() - 0.5);
+            cargarPregunta();
+        })
+        .catch(() => {
+            preguntas = [
+                { texto: "Ahorrar es guardar lo que sobra después de gastar.", respuesta: false, explicacion: "Ahorrar debe ser lo primero que haces al recibir tu ingreso, no lo último." },
+                { texto: "Endeudarse no siempre es malo si sabes manejarlo bien.", respuesta: true, explicacion: "Las deudas bien manejadas pueden ayudarte a lograr metas importantes." },
+                { texto: "Tener un presupuesto mensual ayuda a controlar tus gastos.", respuesta: true, explicacion: "Con un presupuesto sabes a dónde va tu dinero y tomas mejores decisiones." },
+                { texto: "Es mejor pagar solo el mínimo de la tarjeta de crédito.", respuesta: false, explicacion: "Pagar solo el mínimo genera intereses altos y alarga la deuda." },
+                { texto: "Un fondo de emergencia debe cubrir al menos 3 meses de gastos.", respuesta: true, explicacion: "Un colchón de 3 a 6 meses te protege ante imprevistos." }
+            ].sort(() => Math.random() - 0.5);
+            cargarPregunta();
+        });
 
     function cargarPregunta() {
         const p = preguntas[index];
         document.getElementById("pregunta").textContent = p.texto;
         document.getElementById("contador").textContent = `Pregunta ${index + 1} de ${preguntas.length}`;
-        document.getElementById("feedback").textContent = "";
+        document.getElementById("progreso").style.width = `${(index / preguntas.length) * 100}%`;
+        document.getElementById("feedback").classList.add("d-none");
         document.getElementById("btnSiguiente").classList.add("d-none");
-        document.querySelectorAll('.btn-game').forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('btn-correct', 'btn-incorrect');
+        [document.getElementById("btnVerdadero"), document.getElementById("btnFalso")].forEach(b => {
+            b.disabled = false;
+            b.className = "btn-answer";
         });
     }
 
     function responder(opcion) {
         const actual = preguntas[index];
         const correcto = actual.respuesta === opcion;
-        const feedback = document.getElementById("feedback");
         if (correcto) aciertos++;
-        document.querySelectorAll('.btn-game').forEach(btn => {
-            const esVerdadero = btn.textContent.includes("Verdadero");
-            if ((esVerdadero && actual.respuesta) || (!esVerdadero && !actual.respuesta)) {
-                btn.classList.add('btn-correct');
-            } else {
-                btn.classList.add('btn-incorrect');
-            }
-            btn.disabled = true;
-        });
+
+        const btnV = document.getElementById("btnVerdadero");
+        const btnF = document.getElementById("btnFalso");
+        btnV.className = "btn-answer " + (actual.respuesta ? "correct" : "incorrect");
+        btnF.className = "btn-answer " + (!actual.respuesta ? "correct" : "incorrect");
+        btnV.disabled = true; btnF.disabled = true;
+
+        const feedback = document.getElementById("feedback");
+        feedback.classList.remove("d-none");
+        feedback.style.cssText = correcto
+            ? "background:#dcfce7;color:#166534;border:1px solid #bbf7d0;"
+            : "background:#fee2e2;color:#991b1b;border:1px solid #fecaca;";
         feedback.innerHTML = correcto
             ? `✔️ <strong>¡Correcto!</strong> ${actual.explicacion}`
             : `❌ <strong>Incorrecto.</strong> ${actual.explicacion}`;
+
         document.getElementById("btnSiguiente").classList.remove("d-none");
     }
 
     function siguiente() {
         index++;
         if (index < preguntas.length) {
-            document.getElementById("juego").classList.remove("show");
-            setTimeout(() => {
-                cargarPregunta();
-                document.getElementById("juego").classList.add("show");
-            }, 300);
+            cargarPregunta();
         } else {
+            document.getElementById("progreso").style.width = "100%";
             guardarPuntajeFinal("verdadero_falso", aciertos);
-            document.querySelector(".game-box").innerHTML = `
-                <h3 class="mb-3">🎉 ¡Juego terminado!</h3>
-                <p class="mb-3">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
-                <p class="mb-3">Gracias por jugar. Has completado todas las preguntas.</p>
-                <p>${aciertos === preguntas.length ? '🏆 ¡Eres un genio financiero!' : aciertos >= 2 ? '💡 Sigue practicando y mejorarás.' : '📘 Revisa las lecciones para reforzar tus conocimientos.'}</p>
-                <a href="/juegos" class="btn btn-primary mb-2">Volver a minijuegos</a><br>
-                <a href="/juegos/desafio" class="btn btn-outline-danger">⚡ ¿Te atreves al modo desafío?</a>
-            `;
+            const nota = aciertos === preguntas.length ? '🏆 ¡Eres un genio financiero!' : aciertos >= 3 ? '💡 Muy bien, sigue practicando.' : '📘 Revisa las lecciones para reforzar.';
+            document.getElementById("juego").innerHTML = `
+                <div class="text-center py-3">
+                    <div style="font-size:3.5rem;margin-bottom:1rem;">${aciertos === preguntas.length ? '🏆' : aciertos >= 3 ? '🎯' : '📘'}</div>
+                    <h4 class="fw-bold mb-2">¡Juego terminado!</h4>
+                    <p class="text-muted mb-1">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
+                    <p style="font-size:.95rem;">${nota}</p>
+                    <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
+                        <a href="/juegos/verdaderoFalso" class="btn btn-next btn-primary">Jugar de nuevo</a>
+                        <a href="/juegos" class="btn btn-next btn-outline-secondary">Volver a juegos</a>
+                    </div>
+                </div>`;
         }
     }
 
     function guardarPuntajeFinal(juego, puntaje) {
-        fetch('/api/puntajes/guardar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                juego: juego,
-                puntaje: puntaje
-            })
-        }).then(res => {
-            if (!res.ok) {
-                console.warn("⚠️ No se pudo guardar el puntaje.");
-            }
-        });
+        fetch('/api/puntajes/guardar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ juego, puntaje }) });
     }
-
-    cargarPregunta();
 </script>
 </body>
 </html>

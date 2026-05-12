@@ -5,20 +5,22 @@ import com.miproyecto.appfinanciera.repository.DeudaRepository;
 import com.miproyecto.appfinanciera.repository.GastoRepository;
 import com.miproyecto.appfinanciera.repository.IngresoRepository;
 import com.miproyecto.appfinanciera.repository.MetaAhorroRepository;
-import com.miproyecto.appfinanciera.service.ConsejoFinancieroService;
+import com.miproyecto.appfinanciera.service.ClaudeAIService;
 import com.miproyecto.appfinanciera.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Map;
 
-@RestController
-@RequestMapping("/api/consejos")
-public class ConsejoFinancieroRestController {
+@Controller
+public class ChatbotController {
 
     @Autowired
-    private ConsejoFinancieroService consejoService;
+    private ClaudeAIService claudeAIService;
 
     @Autowired
     private UsuarioService usuarioService;
@@ -35,13 +37,22 @@ public class ConsejoFinancieroRestController {
     @Autowired
     private MetaAhorroRepository metaAhorroRepository;
 
-    @GetMapping("/aleatorio")
-    public String obtenerConsejoAleatorio() {
-        return consejoService.obtenerConsejoAleatorio();
+    @GetMapping("/chat")
+    public String mostrarChat() {
+        return "chatbot";
     }
 
-    @GetMapping("/personalizado")
-    public String obtenerConsejoPersonalizado(Authentication auth) {
+    @PostMapping("/api/chat")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> chat(
+            @RequestBody Map<String, String> request,
+            Authentication auth) {
+
+        String mensaje = request.get("mensaje");
+        if (mensaje == null || mensaje.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("respuesta", "Escribe un mensaje para continuar."));
+        }
+
         Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(auth);
 
         double ingresos = ingresoRepository.findByUsuario(usuario).stream()
@@ -57,6 +68,20 @@ public class ConsejoFinancieroRestController {
 
         double ahorro = metaAhorroRepository.sumaAbonosByUsuario(usuario.getId()).orElse(0.0);
 
-        return consejoService.obtenerConsejoPersonalizado(ingresos, deudas, gastos, ahorro);
+        String prompt = String.format("""
+                Eres un asistente financiero personal amigable dentro de la app AppFinanzas.
+                Datos financieros actuales del usuario:
+                - Ingresos totales registrados: $%.2f
+                - Deudas totales: $%.2f
+                - Gastos del mes actual: $%.2f
+                - Ahorro acumulado: $%.2f
+
+                Responde en español, de forma concisa y útil (máximo 4 oraciones).
+                Sin asteriscos ni markdown, solo texto plano.
+                Pregunta del usuario: %s
+                """, ingresos, deudas, gastos, ahorro, mensaje);
+
+        String respuesta = claudeAIService.preguntar(prompt);
+        return ResponseEntity.ok(Map.of("respuesta", respuesta));
     }
 }

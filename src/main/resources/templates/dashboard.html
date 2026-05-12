@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <title>Zenfi - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="icon" type="image/png" href="/img/zenfi_icon.png">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
     <style>
+        * { box-sizing: border-box; }
+
         body {
             background:
-                radial-gradient(circle at top left, rgba(13, 110, 253, 0.10), transparent 24%),
-                radial-gradient(circle at bottom right, rgba(25, 135, 84, 0.08), transparent 28%),
+                radial-gradient(circle at top left, rgba(13,110,253,0.08), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(25,135,84,0.06), transparent 30%),
                 linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             color: #0f172a;
+            margin: 0;
         }
 
         .main-content {
@@ -25,502 +27,378 @@
             min-height: 100vh;
         }
 
-        .dashboard-shell {
-            max-width: 1400px;
-            margin: 0 auto;
+        /* ── Top bar ── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-
-        .hero-card {
-            border: none;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.10);
-            background: #ffffff;
-            margin-bottom: 2rem;
+        .top-bar-logo {
+            height: 38px;
+            width: auto;
+            filter: drop-shadow(0 2px 8px rgba(13,110,253,0.15));
         }
-
-        .hero-left {
-            background: linear-gradient(160deg, #0d6efd 0%, #0b5ed7 45%, #084298 100%);
-            color: #ffffff;
-            padding: 2.5rem;
-            position: relative;
-            min-height: 100%;
-        }
-
-        .hero-left::before {
-            content: "";
-            position: absolute;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            top: -65px;
-            right: -70px;
-        }
-
-        .hero-left::after {
-            content: "";
-            position: absolute;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.06);
-            bottom: -40px;
-            left: -40px;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-logo {
-            max-width: 170px;
-            height: auto;
-            display: block;
-            margin-bottom: 1.25rem;
-            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.18));
-        }
-
-        .hero-title {
-            font-size: 2rem;
+        .greeting-text {
+            font-size: 1.55rem;
             font-weight: 700;
-            line-height: 1.15;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .greeting-sub {
+            font-size: 0.88rem;
+            color: #64748b;
+            margin-top: 0.2rem;
+        }
+
+        /* ── Stat cards ── */
+        .stat-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 1.25rem 1.4rem;
+            box-shadow: 0 4px 18px rgba(15,23,42,0.07);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,23,42,0.11); }
+        .stat-icon {
+            width: 50px; height: 50px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .stat-label { font-size: 0.78rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #0f172a; line-height: 1.2; }
+
+        /* ── Section titles ── */
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
             margin-bottom: 0.75rem;
         }
 
-        .hero-text {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.92);
-            margin-bottom: 0;
-        }
-
-        .hero-right {
-            padding: 2rem;
-            background: #ffffff;
-        }
-
-        .hero-mini-card {
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
+        /* ── Content cards ── */
+        .zen-card {
+            background: #fff;
             border-radius: 20px;
-            padding: 1.25rem;
-            height: 100%;
-        }
-
-        .hero-mini-card h6 {
-            font-size: 0.92rem;
-            color: #64748b;
-            margin-bottom: 0.45rem;
-            font-weight: 600;
-        }
-
-        .hero-mini-card p {
-            margin: 0;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.4;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #0f172a;
-        }
-
-        .summary-card {
+            box-shadow: 0 6px 22px rgba(15,23,42,0.08);
             border: none;
-            border-radius: 22px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
             overflow: hidden;
-            min-height: 145px;
         }
+        .zen-card-body { padding: 1.4rem; }
 
-        .summary-card .card-body {
-            padding: 1.4rem;
-        }
-
-        .summary-label {
-            font-size: 0.95rem;
-            font-weight: 600;
-            opacity: 0.95;
-            margin-bottom: 0.5rem;
-        }
-
-        .summary-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
-        .summary-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background: rgba(255,255,255,0.18);
-        }
-
-        .bg-zen-warning {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: #ffffff;
-        }
-
-        .bg-zen-danger {
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-            color: #ffffff;
-        }
-
-        .bg-zen-success {
-            background: linear-gradient(135deg, #059669, #10b981);
-            color: #ffffff;
-        }
-
-        .content-card {
-            border: none;
-            border-radius: 24px;
-            background: #ffffff;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-            height: 100%;
-        }
-
-        .content-card .card-body {
-            padding: 1.5rem;
-        }
-
-        .card-title-zen {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 0.9rem;
-        }
-
+        /* ── Tip card ── */
         .tip-card {
-            background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
-            border: 1px solid #bae6fd;
-        }
-
-        .progress-card {
-            background: linear-gradient(135deg, #dbeafe 0%, #f8fafc 100%);
+            background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
             border: 1px solid #bfdbfe;
         }
+        #tipFinanciero { color: #1e40af; font-size: 0.95rem; line-height: 1.7; transition: opacity 0.3s; }
 
-        .soft-btn {
+        /* ── Module shortcuts ── */
+        .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+        .module-btn {
+            background: #fff;
+            border: 1px solid #e2e8f0;
             border-radius: 14px;
-            font-weight: 600;
-            padding: 0.65rem 1rem;
-        }
-
-        #tipFinanciero {
-            transition: opacity 0.35s ease;
-            color: #334155;
-            line-height: 1.7;
-        }
-
-        .news-card {
-            border: none;
-            border-radius: 20px;
-            background: #ffffff;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            overflow: hidden;
-            height: 100%;
-        }
-
-        .news-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.10);
-        }
-
-        .news-image {
-            width: 100%;
-            height: 185px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .news-body {
-            padding: 1rem 1rem 1.1rem 1rem;
-        }
-
-        .news-badge {
-            display: inline-flex;
+            padding: 0.9rem 0.75rem;
+            text-align: center;
+            text-decoration: none;
+            color: #0f172a;
+            transition: all 0.18s;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 0.4rem;
-            font-size: 0.78rem;
-            font-weight: 600;
+        }
+        .module-btn:hover {
+            background: #f8fafc;
+            border-color: #0d6efd;
             color: #0d6efd;
-            background: #eff6ff;
-            border-radius: 999px;
-            padding: 0.35rem 0.7rem;
-            margin-bottom: 0.75rem;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(13,110,253,0.12);
+        }
+        .module-btn .mod-icon { font-size: 1.4rem; line-height: 1; }
+        .module-btn .mod-label { font-size: 0.78rem; font-weight: 600; }
+        .module-btn.ai-module {
+            background: linear-gradient(135deg, #1e3a5f, #1f6feb);
+            border-color: transparent;
+            color: #fff;
+        }
+        .module-btn.ai-module:hover {
+            background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(31,111,235,0.35);
         }
 
-        .news-title {
-            font-size: 0.98rem;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.5;
-            margin-bottom: 0.7rem;
-        }
+        /* ── Progress ── */
+        .progress-bar-zen { height: 8px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0d6efd, #3b82f6); }
 
-        .news-source {
-            font-size: 0.85rem;
-            color: #64748b;
+        /* ── News ── */
+        .news-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(15,23,42,0.07);
+            overflow: hidden;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
         }
+        .news-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(15,23,42,0.11); }
+        .news-img { width: 100%; height: 170px; object-fit: cover; display: block; }
+        .news-body { padding: 1rem; }
+        .news-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; color: #0d6efd; background: #eff6ff; border-radius: 999px; padding: 0.25rem 0.6rem; margin-bottom: 0.6rem; }
+        .news-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; line-height: 1.45; margin-bottom: 0.5rem; }
+        .news-source { font-size: 0.78rem; color: #94a3b8; }
 
-        .empty-news {
-            border: 1px dashed #cbd5e1;
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 1.25rem;
-            color: #64748b;
-        }
-
+        /* ── Responsive ── */
         @media (max-width: 991.98px) {
-            .main-content {
-                margin-left: 0;
-                padding: 1.25rem;
-            }
-
-            .hero-left,
-            .hero-right {
-                padding: 1.5rem;
-            }
-
-            .hero-logo {
-                max-width: 135px;
-            }
-
-            .hero-title {
-                font-size: 1.7rem;
-            }
+            .main-content { margin-left: 0; padding: 1.25rem; }
+            .module-grid { grid-template-columns: repeat(3, 1fr); }
         }
-
-        @media (max-width: 767.98px) {
-            .summary-value {
-                font-size: 1.35rem;
-            }
-
-            .news-image {
-                height: 165px;
-            }
+        @media (max-width: 575.98px) {
+            .module-grid { grid-template-columns: repeat(2, 1fr); }
+            .greeting-text { font-size: 1.3rem; }
         }
     </style>
 </head>
-
 <body>
 
 <div th:replace="fragments/sidebar :: sidebar"></div>
 
 <div class="main-content">
-    <div class="dashboard-shell">
 
-        <div class="card hero-card">
-            <div class="row g-0">
-                <div class="col-lg-5 hero-left d-flex align-items-center">
-                    <div class="hero-content">
-                        <img src="/img/zenfi_logo.png" alt="Zenfi" class="hero-logo">
-                        <h1 class="hero-title">Bienvenido de nuevo a Zenfi</h1>
-                        <p class="hero-text">
-                            Aprende, organiza tus finanzas y mantén el control de tu progreso en un solo lugar.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-lg-7 hero-right">
-                    <div class="row g-3 h-100">
-                        <div class="col-md-4">
-                            <div class="hero-mini-card">
-                                <h6>Estado general</h6>
-                                <p>Tu resumen financiero del día</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="hero-mini-card">
-                                <h6>Educación</h6>
-                                <p><span th:text="${leccionesCompletadas}">0</span> lecciones completadas</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="hero-mini-card">
-                                <h6>Plataforma</h6>
-                                <p>Zenfi • Aprende • Juega • Crece</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- ── TOP BAR ── -->
+    <div class="top-bar">
+        <div>
+            <div class="greeting-text">
+                Hola, <span th:text="${nombre != null ? nombre : 'bienvenido'}">Usuario</span> 👋
             </div>
+            <div class="greeting-sub" id="fechaHoy"></div>
         </div>
+        <img th:src="@{/img/zenfi_logo.png}" alt="Zenfi" class="top-bar-logo">
+    </div>
 
-        <h2 class="section-title">Resumen financiero</h2>
-
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card summary-card bg-zen-warning">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="summary-label">Ahorro actual</div>
-                            <div class="summary-icon">
-                                <i class="fas fa-piggy-bank"></i>
-                            </div>
-                        </div>
-                        <div class="summary-value" th:text="${totalAhorroFormateado}">---</div>
+    <!-- ── STATS ROW ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <a th:href="@{/ahorro}" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fef3c7;">💰</div>
+                    <div>
+                        <div class="stat-label">Ahorro total</div>
+                        <div class="stat-value" th:text="${totalAhorroFormateado}">$0</div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card summary-card bg-zen-danger">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="summary-label">Deudas</div>
-                            <div class="summary-icon">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                        </div>
-                        <div class="summary-value" th:text="${totalDeudasFormateado}">---</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card summary-card bg-zen-success">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="summary-label">Meta activa</div>
-                            <div class="summary-icon">
-                                <i class="fas fa-bullseye"></i>
-                            </div>
-                        </div>
-                        <div class="summary-value" th:text="${nombreMetaActiva}">---</div>
-                    </div>
-                </div>
-            </div>
+            </a>
         </div>
+        <div class="col-6 col-lg-3">
+            <a th:href="@{/analisis}" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fee2e2;">💳</div>
+                    <div>
+                        <div class="stat-label">Deudas totales</div>
+                        <div class="stat-value" th:text="${totalDeudasFormateado}">$0</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a th:href="@{/ahorro}" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#dcfce7;">🎯</div>
+                    <div>
+                        <div class="stat-label">Meta activa</div>
+                        <div class="stat-value" style="font-size:0.95rem;" th:text="${nombreMetaActiva}">Sin meta</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a th:href="@{/aprende}" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#dbeafe;">📚</div>
+                    <div>
+                        <div class="stat-label">Lecciones</div>
+                        <div class="stat-value">
+                            <span th:text="${leccionesCompletadas}">0</span>
+                            <span style="font-size:0.85rem;color:#64748b;font-weight:400;"> / <span th:text="${totalLecciones}">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-lg-7">
-                <div class="card content-card tip-card">
-                    <div class="card-body">
-                        <h5 class="card-title-zen">📌 Tip financiero del día</h5>
-                        <p id="tipFinanciero" th:text="${tipFinanciero}">
-                            No gastes más de lo que ganas.
-                        </p>
-                        <button class="btn btn-dark soft-btn btn-sm mt-2" onclick="cambiarConsejo()">
-                            Ver otro
+    <!-- ── MAIN CONTENT ROW ── -->
+    <div class="row g-4 mb-4">
+
+        <!-- LEFT: Tip IA + Accesos rápidos -->
+        <div class="col-lg-8 d-flex flex-column gap-4">
+
+            <!-- Tip IA -->
+            <div class="zen-card tip-card">
+                <div class="zen-card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3b82f6;">📌 Tip financiero del día</span>
+                        <button class="btn btn-sm" style="border-radius:8px;font-size:0.78rem;font-weight:600;background:#dbeafe;color:#1d4ed8;border:none;" onclick="cambiarConsejo()">
+                            Generar con IA
                         </button>
                     </div>
+                    <p id="tipFinanciero" class="mb-0" th:text="${tipFinanciero}">Cargando tip...</p>
                 </div>
             </div>
 
-            <div class="col-lg-5">
-                <div class="card content-card progress-card">
-                    <div class="card-body">
-                        <h5 class="card-title-zen">Progreso educativo</h5>
-                        <p class="mb-2 text-secondary">
-                            Lecciones completadas:
-                            <strong>
-                                <span th:text="${leccionesCompletadas}">0</span>/<span th:text="${totalLecciones}">0</span>
-                            </strong>
-                        </p>
-
-                        <div class="progress mb-3" style="height: 10px; border-radius: 999px;">
-                            <div class="progress-bar bg-primary"
-                                 role="progressbar"
-                                 th:style="${'width:' + (totalLecciones > 0 ? (leccionesCompletadas * 100 / totalLecciones) : 0) + '%;'}"
-                                 aria-valuemin="0"
-                                 aria-valuemax="100">
-                            </div>
-                        </div>
-
-                        <a th:href="@{/aprende}" class="btn btn-primary soft-btn btn-sm">
-                            Ir a Aprende
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h2 class="section-title">Noticias y actualidad</h2>
-
-        <div th:if="${noticias == null || noticias.isEmpty()}" class="empty-news mb-4">
-            No se encontraron noticias en este momento.
-        </div>
-
-        <div class="row g-4">
-            <th:block th:if="${noticias != null}">
-                <div class="col-sm-6 col-lg-4"
-                     th:each="noticia : ${noticias}">
-                    <a class="text-decoration-none"
-                       th:if="${noticia.enlace != null and noticia.titulo != null and noticia.titulo.length() > 10}"
-                       th:href="${noticia.enlace}"
-                       target="_blank">
-                        <div class="news-card">
-                            <img class="news-image"
-                                 src="https://img.lalr.co/cms/2025/04/07185145/ancla_trump_colcap_p15.jpg?"
-                                 alt="Noticia financiera">
-                            <div class="news-body">
-                                <div class="news-badge">
-                                    <i class="fas fa-newspaper"></i>
-                                    <span>Actualidad financiera</span>
-                                </div>
-                                <div class="news-title" th:text="${noticia.titulo}">
-                                    Noticia ejemplo
-                                </div>
-                                <div class="news-source">Extraído de La República</div>
-                            </div>
-                        </div>
+            <!-- Accesos rápidos -->
+            <div>
+                <div class="section-label">Accesos rápidos</div>
+                <div class="module-grid">
+                    <a th:href="@{/ahorro}" class="module-btn">
+                        <div class="mod-icon">💰</div>
+                        <div class="mod-label">Ahorro</div>
+                    </a>
+                    <a th:href="@{/analisis}" class="module-btn">
+                        <div class="mod-icon">📉</div>
+                        <div class="mod-label">Finanzas</div>
+                    </a>
+                    <a th:href="@{/presupuesto}" class="module-btn">
+                        <div class="mod-icon">🧾</div>
+                        <div class="mod-label">Presupuesto</div>
+                    </a>
+                    <a th:href="@{/aprende}" class="module-btn">
+                        <div class="mod-icon">🎓</div>
+                        <div class="mod-label">Aprende</div>
+                    </a>
+                    <a th:href="@{/juegos}" class="module-btn">
+                        <div class="mod-icon">🎮</div>
+                        <div class="mod-label">Juegos</div>
+                    </a>
+                    <a th:href="@{/chat}" class="module-btn ai-module">
+                        <div class="mod-icon">🤖</div>
+                        <div class="mod-label">Asistente IA</div>
                     </a>
                 </div>
-            </th:block>
-
-            <div class="col-sm-6 col-lg-4">
-                <a class="text-decoration-none"
-                   href="https://www.larepublica.co/finanzas/ban100-banco-w-y-pichincha-entre-los-bancos-con-las-tasas-mas-rentables-para-cdt-3994668"
-                   target="_blank">
-                    <div class="news-card">
-                        <img class="news-image"
-                             src="https://img.lalr.co/cms/2024/11/08073231/WEB_Fin_TasaRentabilidadCDT.jpg?size=sm"
-                             alt="CDT">
-                        <div class="news-body">
-                            <div class="news-badge">
-                                <i class="fas fa-coins"></i>
-                                <span>Mercado</span>
-                            </div>
-                            <div class="news-title">
-                                Bancos con tasas más rentables para CDT
-                            </div>
-                            <div class="news-source">Extraído de La República</div>
-                        </div>
-                    </div>
-                </a>
             </div>
         </div>
 
+        <!-- RIGHT: Progreso + Chatbot -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+
+            <!-- Progreso educativo -->
+            <div class="zen-card">
+                <div class="zen-card-body">
+                    <div class="section-label">Progreso educativo</div>
+                    <div class="d-flex align-items-end justify-content-between mb-2">
+                        <span style="font-size:0.88rem;color:#64748b;">Lecciones completadas</span>
+                        <span style="font-size:1.1rem;font-weight:700;">
+                            <span th:text="${leccionesCompletadas}">0</span>/<span th:text="${totalLecciones}">0</span>
+                        </span>
+                    </div>
+                    <div class="progress-bar-zen mb-3">
+                        <div class="progress-fill"
+                             th:style="${'width:' + (totalLecciones > 0 ? (leccionesCompletadas * 100 / totalLecciones) : 0) + '%'}">
+                        </div>
+                    </div>
+                    <a th:href="@{/aprende}" class="btn btn-primary w-100" style="border-radius:12px;font-weight:600;font-size:0.88rem;">
+                        Continuar aprendiendo →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chatbot CTA -->
+            <a th:href="@{/chat}" class="text-decoration-none">
+                <div class="zen-card" style="background:linear-gradient(145deg,#0f2044,#1d4ed8);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
+                     onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 36px rgba(29,78,216,0.4)'"
+                     onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div class="zen-card-body text-white">
+                        <div style="font-size:2rem;margin-bottom:0.6rem;">🤖</div>
+                        <div style="font-weight:700;font-size:1rem;margin-bottom:0.4rem;">Asistente Financiero IA</div>
+                        <div style="font-size:0.82rem;opacity:0.8;line-height:1.5;margin-bottom:1rem;">
+                            Pregúntale a la IA sobre tus gastos, deudas o metas de ahorro.
+                        </div>
+                        <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:600;text-align:center;">
+                            Abrir chat →
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
     </div>
+
+    <!-- ── NOTICIAS ── -->
+    <div class="section-label">Noticias y actualidad financiera</div>
+
+    <div th:if="${noticias == null || noticias.isEmpty()}" class="mb-4"
+         style="border:1px dashed #cbd5e1;background:#fff;border-radius:16px;padding:1.25rem;color:#64748b;font-size:0.88rem;">
+        No se encontraron noticias en este momento. Verifica tu conexión a internet.
+    </div>
+
+    <div class="row g-3 pb-4" th:if="${noticias != null and !noticias.isEmpty()}">
+        <div class="col-sm-6 col-lg-4" th:each="noticia : ${noticias}"
+             th:if="${noticia.enlace != null and noticia.titulo != null and noticia.titulo.length() > 10}">
+            <a class="text-decoration-none" th:href="${noticia.enlace}" target="_blank" rel="noopener">
+                <div class="news-card">
+                    <img class="news-img"
+                         th:src="${noticia.imagen}"
+                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&h=300&fit=crop&auto=format'"
+                         alt="Noticia">
+                    <div class="news-body">
+                        <div class="news-badge">
+                            <i class="fas fa-newspaper"></i>
+                            <span th:text="${noticia.fuente}">Economía</span>
+                        </div>
+                        <div class="news-title" th:text="${noticia.titulo}">Título</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
 </div>
 
 <script>
+    // Fecha de hoy
+    const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const hoy = new Date();
+    document.getElementById('fechaHoy').textContent =
+        `${dias[hoy.getDay()]}, ${hoy.getDate()} de ${meses[hoy.getMonth()]} de ${hoy.getFullYear()}`;
+
+    // Consejo con IA
     function cambiarConsejo() {
-        fetch('/api/consejos/aleatorio')
-            .then(res => res.text())
-            .then(data => {
-                const p = document.getElementById('tipFinanciero');
+        const p = document.getElementById('tipFinanciero');
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '⏳ Generando...';
+        p.style.opacity = 0.4;
+
+        fetch('/api/consejos/personalizado')
+            .then(r => r.text())
+            .then(d => {
                 p.style.opacity = 0;
                 setTimeout(() => {
-                    p.textContent = data;
+                    p.textContent = d;
                     p.style.opacity = 1;
+                    btn.disabled = false;
+                    btn.textContent = 'Generar con IA';
                 }, 250);
+            })
+            .catch(() => {
+                p.style.opacity = 1;
+                btn.disabled = false;
+                btn.textContent = 'Generar con IA';
             });
     }
 </script>
-
 </body>
 </html>

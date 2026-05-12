@@ -2,55 +2,93 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Progreso de tus Metas</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Progreso de Ahorro - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: radial-gradient(circle at top left,rgba(13,110,253,.08),transparent 28%),radial-gradient(circle at bottom right,rgba(25,135,84,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; }
+        .zen-card { background:#fff; border-radius:20px; box-shadow:0 8px 24px rgba(15,23,42,.08); border:none; }
+        .meta-card { background:#fff; border-radius:18px; box-shadow:0 6px 20px rgba(15,23,42,.08); border:none; transition:transform .2s; }
+        .meta-card:hover { transform:translateY(-3px); }
+        .progress { height:10px; border-radius:999px; }
+        .progress-bar { border-radius:999px; }
+        .input-group-text { background:#f8fafc; border:1px solid #e2e8f0; border-right:none; border-radius:12px 0 0 12px; }
+        .form-control { border:1px solid #e2e8f0; border-left:none; border-radius:0 12px 12px 0; padding:.65rem 1rem; }
+        .form-control:focus { border-color:#86b7fe; box-shadow:none; }
+        .btn-zen { border-radius:12px; font-weight:600; padding:.6rem 1.2rem; }
+        .empty-state { text-align:center; padding:3rem 1rem; }
+        @media(max-width:991px){.main-content{margin-left:0}}
+    </style>
 </head>
-<body class="bg-light">
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
 
-<div class="container my-5">
-    <h2 class="text-center text-warning fw-bold">📊 Progreso de tu Ahorro</h2>
-    <p class="text-center">Aquí verás el avance de tus metas. ¡Sigue ahorrando!</p>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 style="font-size:1.6rem;font-weight:700;margin:0;">📊 Mis metas de ahorro</h2>
+            <p class="text-muted mb-0">Registra tus abonos y sigue el progreso de cada meta.</p>
+        </div>
+        <a href="/ahorro/paso1" class="btn btn-zen btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Nueva meta
+        </a>
+    </div>
+
+    <div th:if="${metas == null || metas.isEmpty()}" class="zen-card empty-state">
+        <div style="font-size:3rem;margin-bottom:1rem;">🎯</div>
+        <h5 class="fw-bold">Aún no tienes metas</h5>
+        <p class="text-muted mb-3">Crea tu primer plan de ahorro y empieza a avanzar hacia tus sueños.</p>
+        <a href="/ahorro/paso1" class="btn btn-zen btn-primary">Crear mi primera meta</a>
+    </div>
 
     <div class="row g-4">
         <div class="col-md-6" th:each="meta : ${metas}">
-            <div class="card shadow-sm p-3 h-100">
-                <h5 class="fw-bold" th:text="${meta.descripcion}">Nombre de la meta</h5>
-                <p><strong>📂 Categoría:</strong> <span th:text="${meta.categoria}">Educación</span></p>
-                <p><strong>🎯 Monto:</strong> <span th:text="${meta.montoFormateado}">$0</span></p>
-                <p><strong>💰 Ahorrado:</strong> <span th:text="${meta.abonadoFormateado}">$0</span></p>
-
-                <label>Progreso:</label>
-                <div class="progress mb-2">
-                    <div class="progress-bar bg-warning" role="progressbar"
-                         th:style="'width:' + ${meta.progreso} + '%'"
-                         th:text="${meta.progreso + '%'}">
+            <div class="meta-card p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0" th:text="${meta.descripcion}">Meta</h5>
+                        <span class="badge mt-1" style="background:#f1f5f9;color:#475569;border-radius:8px;font-size:.78rem;" th:text="${meta.categoria}">Categoría</span>
                     </div>
+                    <span th:if="${meta.completada}" class="badge bg-success" style="border-radius:8px;">✓ Completada</span>
                 </div>
 
-                <form th:action="@{/ahorro/abonar}" method="post" class="mb-2">
+                <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;color:#64748b;">
+                    <span>Ahorrado: <strong class="text-success" th:text="${meta.abonadoFormateado}">$0</strong></span>
+                    <span>Meta: <strong th:text="${meta.montoFormateado}">$0</strong></span>
+                </div>
+
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success"
+                         th:style="'width:' + ${meta.progreso} + '%'"
+                         th:text="${meta.progreso + '%'}"></div>
+                </div>
+
+                <form th:action="@{/ahorro/abonar}" method="post" class="mb-3">
                     <input type="hidden" name="id" th:value="${meta.id}">
                     <div class="input-group">
-                        <input type="number" name="abono" class="form-control" placeholder="Ej. 10000" required>
-                        <button class="btn btn-warning">💸 Abonar</button>
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="abono" class="form-control" placeholder="Valor a abonar" required>
+                        <button class="btn btn-zen btn-success" type="submit" style="border-radius:0 12px 12px 0;">Abonar</button>
                     </div>
                 </form>
 
                 <form th:action="@{/ahorro/eliminar}" method="post">
                     <input type="hidden" name="id" th:value="${meta.id}">
-                    <button class="btn btn-outline-danger w-100">🗑 Eliminar esta meta</button>
+                    <button type="submit" class="btn btn-zen btn-outline-danger w-100" style="font-size:.85rem;">
+                        <i class="bi bi-trash me-1"></i> Eliminar meta
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div class="text-center mt-5">
-        <a href="/ahorro/paso1" class="btn btn-warning btn-lg">➕ Nueva meta</a>
-    </div>
-
-    <div class="text-center mt-3">
-        <a href="/dashboard" class="btn btn-secondary">Volver al inicio</a>
+    <div class="text-center mt-4">
+        <a href="/dashboard" class="btn btn-zen btn-outline-secondary">← Volver al inicio</a>
     </div>
 </div>
-
 </body>
 </html>

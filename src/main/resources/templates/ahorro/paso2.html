@@ -2,67 +2,97 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Clasifica tu sueño</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Plan de Ahorro · Paso 2 - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: radial-gradient(circle at top left,rgba(13,110,253,.08),transparent 28%),radial-gradient(circle at bottom right,rgba(25,135,84,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; }
+        .zen-card { background:#fff; border-radius:20px; box-shadow:0 8px 24px rgba(15,23,42,.08); border:none; }
+        .step-indicator { display:flex; gap:.5rem; margin-bottom:2rem; }
+        .step { flex:1; height:6px; border-radius:999px; background:#e2e8f0; }
+        .step.done { background:#10b981; }
+        .step.active { background:#0d6efd; }
+        .form-control,.form-select { border-radius:12px; padding:.75rem 1rem; border:1px solid #e2e8f0; }
+        .form-control:focus,.form-select:focus { border-color:#86b7fe; box-shadow:0 0 0 .2rem rgba(13,110,253,.12); }
+        .btn-zen { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
+        @media(max-width:991px){.main-content{margin-left:0}}
+    </style>
 </head>
-<body class="bg-light">
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+    <div style="max-width:600px;margin:0 auto;">
 
-<div class="container my-5">
-    <h2 class="text-center text-warning fw-bold">💰 Ahorra</h2>
-    <p class="text-center">A continuación realiza tu plan de ahorro en 3 pasos:</p>
+        <div class="mb-4">
+            <p class="text-muted mb-1" style="font-size:.85rem;">Plan de ahorro</p>
+            <h2 style="font-size:1.6rem;font-weight:700;">💰 Clasifica tu meta</h2>
+        </div>
 
-    <div class="progress mb-4">
-        <div class="progress-bar bg-warning" style="width: 66%">Paso 2</div>
+        <div class="step-indicator">
+            <div class="step done"></div>
+            <div class="step active"></div>
+            <div class="step"></div>
+        </div>
+        <div class="d-flex justify-content-between mb-4" style="font-size:.8rem;color:#64748b;">
+            <span style="color:#10b981;font-weight:600;">✓ Tu sueño</span>
+            <span style="color:#0d6efd;font-weight:600;">Paso 2 · Monto</span>
+            <span>Paso 3 · Plan</span>
+        </div>
+
+        <div class="zen-card p-4">
+            <h5 class="fw-bold mb-1">¿En qué categoría y cuánto necesitas?</h5>
+            <p class="text-muted mb-4" style="font-size:.9rem;">Clasifica tu meta y define el monto total que necesitas reunir.</p>
+
+            <form th:action="@{/ahorro/paso2}" method="post" th:object="${metaAhorro}">
+                <input type="hidden" th:field="*{id}"/>
+
+                <div class="mb-3">
+                    <label for="categoria" class="form-label fw-semibold">Categoría</label>
+                    <select class="form-select" id="categoria" th:field="*{categoria}" required>
+                        <option value="">Selecciona una categoría...</option>
+                        <option value="Educación">🎓 Educación</option>
+                        <option value="Viaje">✈️ Viaje</option>
+                        <option value="Vehículo">🚗 Vehículo</option>
+                        <option value="Negocio">💼 Negocio</option>
+                        <option value="Hogar">🏠 Hogar</option>
+                        <option value="Ropa">👕 Ropa</option>
+                        <option value="Salud">🏥 Salud</option>
+                        <option value="Tecnologia">💻 Tecnología</option>
+                        <option value="Otro">📦 Otro</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="monto" class="form-label fw-semibold">¿Cuánto dinero necesitas?</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:12px 0 0 12px;background:#f8fafc;border:1px solid #e2e8f0;">$</span>
+                        <input type="text" class="form-control" id="monto" placeholder="1.000.000" th:field="*{monto}" required style="border-radius:0 12px 12px 0;">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <a th:href="@{'/ahorro/paso1'(id=${metaAhorro.id})}" class="btn btn-zen btn-outline-secondary flex-fill">← Atrás</a>
+                    <button type="submit" class="btn btn-zen btn-primary flex-fill">Continuar →</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <form th:action="@{/ahorro/paso2}" method="post" th:object="${metaAhorro}" class="card p-4 shadow-sm">
-        <input type="hidden" th:field="*{id}" />
-
-        <h4 class="mb-3">Paso 2: Clasifica tu sueño y monto necesario</h4>
-
-        <!-- Clasificación -->
-        <div class="mb-3">
-            <label for="categoria" class="form-label">Clasifica tu sueño</label>
-            <select class="form-select" id="categoria" th:field="*{categoria}" required>
-                <option value="Educación">Educación</option>
-                <option value="Viaje">Viaje</option>
-                <option value="Vehículo">Vehículo</option>
-                <option value="Negocio">Negocio</option>
-                <option value="Hogar">Hogar</option>
-                <option value="Ropa">Ropa</option>
-                <option value="Salud">Salud</option>
-                <option value="Tecnologia">Tecnología</option>
-                <option value="Otro">Otro</option>
-            </select>
-        </div>
-
-        <!-- Monto necesario -->
-        <div class="mb-3">
-            <label for="monto" class="form-label">¿Cuánto dinero necesitas?</label>
-            <input type="text" class="form-control" id="monto" placeholder="$1.000.000" th:field="*{monto}" required>
-        </div>
-
-        <button type="submit" class="btn btn-warning w-100">Continuar</button>
-
-        <div class="text-center mt-4">
-            <a th:href="@{'/ahorro/paso1'(id=${metaAhorro.id})}" class="btn btn-secondary">Atrás</a>
-        </div>
-    </form>
 </div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const inputMonto = document.getElementById('monto');
         inputMonto.addEventListener('input', function (e) {
-            let valorNumerico = e.target.value.replace(/\D/g, '');
-            e.target.value = new Intl.NumberFormat('es-CO').format(valorNumerico);
+            let val = e.target.value.replace(/\D/g, '');
+            e.target.value = new Intl.NumberFormat('es-CO').format(val);
         });
-
         inputMonto.form.addEventListener('submit', function () {
             inputMonto.value = inputMonto.value.replace(/\./g, '').replace(/\s/g, '');
         });
     });
 </script>
-
 </body>
 </html>

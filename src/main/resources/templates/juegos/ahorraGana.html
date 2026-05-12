@@ -1,208 +1,153 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>💰 Ahorra y Gana</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Ahorra y Gana - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to right, #e0f7fa, #f9fbe7);
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        .game-box {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: auto;
-        }
-
-        .form-control {
-            font-size: 1.1rem;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            padding: 1rem;
-            border-radius: 12px;
-        }
-
-        .stars {
-            font-size: 1.5rem;
-        }
-
-        .porcentaje {
-            font-size: 0.95rem;
-            color: #666;
-        }
+        body { background: radial-gradient(circle at top left,rgba(13,110,253,.08),transparent 28%),radial-gradient(circle at bottom right,rgba(25,135,84,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; }
+        .zen-card { background:#fff; border-radius:20px; box-shadow:0 8px 24px rgba(15,23,42,.08); border:none; }
+        .form-control,.form-select { border-radius:12px; padding:.7rem 1rem; border:1px solid #e2e8f0; }
+        .form-control:focus,.form-select:focus { border-color:#86b7fe; box-shadow:0 0 0 .2rem rgba(13,110,253,.12); }
+        .btn-zen { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
+        .result-box { border-radius:14px; padding:1.25rem; }
+        .porc-label { font-size:.82rem; color:#94a3b8; margin-top:.25rem; }
+        @media(max-width:991px){.main-content{margin-left:0}}
     </style>
 </head>
 <body>
-<div class="container py-5">
-    <div class="game-box">
-        <h3 class="text-center mb-4">💰 <strong>Ahorra y Gana</strong></h3>
-        <p class="text-center text-muted">Simula cómo distribuir tu dinero según el nivel y toma buenas decisiones.</p>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+    <div style="max-width:620px;margin:0 auto;">
 
-        <div class="mb-3">
-            <label for="nivel" class="form-label">🎯 Selecciona nivel:</label>
-            <select id="nivel" class="form-select">
-                <option value="1000000">Fácil ($1.000.000)</option>
-                <option value="800000">Intermedio ($800.000)</option>
-                <option value="600000">Difícil ($600.000)</option>
-            </select>
+        <div class="mb-4">
+            <a href="/juegos" style="font-size:.85rem;color:#64748b;text-decoration:none;">← Juegos</a>
+            <h2 style="font-size:1.6rem;font-weight:700;margin-top:.25rem;">💰 Ahorra y Gana</h2>
+            <p class="text-muted">Simula cómo distribuir tu dinero y toma las mejores decisiones financieras.</p>
         </div>
 
-        <div class="mb-3">
-            <label for="vivienda" class="form-label">🏠 Vivienda</label>
-            <input type="text" class="form-control currency" id="vivienda" placeholder="$0">
-            <small class="porcentaje" id="porc-vivienda"></small>
-        </div>
-        <div class="mb-3">
-            <label for="alimentacion" class="form-label">🍽️ Alimentación</label>
-            <input type="text" class="form-control currency" id="alimentacion" placeholder="$0">
-            <small class="porcentaje" id="porc-alimentacion"></small>
-        </div>
-        <div class="mb-3">
-            <label for="entretenimiento" class="form-label">🎮 Entretenimiento</label>
-            <input type="text" class="form-control currency" id="entretenimiento" placeholder="$0">
-            <small class="porcentaje" id="porc-entretenimiento"></small>
-        </div>
-        <div class="mb-3">
-            <label for="ahorro" class="form-label">💎 Ahorro</label>
-            <input type="text" class="form-control currency" id="ahorro" placeholder="$0">
-            <small class="porcentaje" id="porc-ahorro"></small>
-        </div>
+        <div class="zen-card p-4">
+            <div class="mb-4">
+                <label for="nivel" class="form-label fw-semibold">🎯 Selecciona tu nivel de dificultad</label>
+                <select id="nivel" class="form-select">
+                    <option value="1000000">Fácil — $1.000.000</option>
+                    <option value="800000">Intermedio — $800.000</option>
+                    <option value="600000">Difícil — $600.000 (con eventos sorpresa)</option>
+                </select>
+            </div>
 
-        <div class="text-center">
-            <button class="btn btn-success" onclick="evaluar()">Evaluar</button>
-            <a href="/juegos" class="btn btn-outline-secondary ms-2">← Volver</a>
-        </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <label for="vivienda" class="form-label fw-semibold">🏠 Vivienda</label>
+                    <input type="text" class="form-control currency" id="vivienda" placeholder="$0">
+                    <div class="porc-label" id="porc-vivienda"></div>
+                </div>
+                <div class="col-6">
+                    <label for="alimentacion" class="form-label fw-semibold">🍽️ Alimentación</label>
+                    <input type="text" class="form-control currency" id="alimentacion" placeholder="$0">
+                    <div class="porc-label" id="porc-alimentacion"></div>
+                </div>
+                <div class="col-6">
+                    <label for="entretenimiento" class="form-label fw-semibold">🎮 Entretenimiento</label>
+                    <input type="text" class="form-control currency" id="entretenimiento" placeholder="$0">
+                    <div class="porc-label" id="porc-entretenimiento"></div>
+                </div>
+                <div class="col-6">
+                    <label for="ahorro" class="form-label fw-semibold">💎 Ahorro</label>
+                    <input type="text" class="form-control currency" id="ahorro" placeholder="$0">
+                    <div class="porc-label" id="porc-ahorro"></div>
+                </div>
+            </div>
 
-        <div id="resultado" class="result-box mt-4 d-none"></div>
+            <div class="d-flex gap-3">
+                <a href="/juegos" class="btn btn-zen btn-outline-secondary flex-fill">← Volver</a>
+                <button class="btn btn-zen btn-success flex-fill" onclick="evaluar()">Evaluar decisión</button>
+            </div>
+
+            <div id="resultado" class="result-box mt-4 d-none"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    const fields = ["vivienda", "alimentacion", "entretenimiento", "ahorro"];
+    const fields = ["vivienda","alimentacion","entretenimiento","ahorro"];
+    function parseValue(val){return parseInt(val.replace(/[^\d]/g,'')||0);}
+    function formatPesos(val){return"$"+val.toLocaleString("es-CO");}
 
-    function parseValue(val) {
-        return parseInt(val.replace(/[^\d]/g, '') || 0);
-    }
-
-    function formatPesos(val) {
-        return "$" + val.toLocaleString("es-CO");
-    }
-
-    document.querySelectorAll('.currency').forEach(input => {
-        input.addEventListener('input', function () {
-            let value = this.value.replace(/[^\d]/g, '');
-            value = new Intl.NumberFormat('es-CO').format(value);
-            this.value = value ? '$' + value : '';
+    document.querySelectorAll('.currency').forEach(input=>{
+        input.addEventListener('input',function(){
+            let value=this.value.replace(/[^\d]/g,'');
+            value=new Intl.NumberFormat('es-CO').format(value);
+            this.value=value?'$'+value:'';
             actualizarPorcentajes();
         });
     });
+    document.getElementById("nivel").addEventListener("change",actualizarPorcentajes);
 
-    document.getElementById("nivel").addEventListener("change", actualizarPorcentajes);
-
-    function actualizarPorcentajes() {
-        const total = parseValue(document.getElementById("nivel").value);
-        fields.forEach(id => {
-            const val = parseValue(document.getElementById(id).value);
-            const porc = total > 0 ? (val / total * 100).toFixed(1) : 0;
-            document.getElementById("porc-" + id).textContent = porc > 0 ? `(${porc}% del total)` : '';
+    function actualizarPorcentajes(){
+        const total=parseValue(document.getElementById("nivel").value);
+        fields.forEach(id=>{
+            const val=parseValue(document.getElementById(id).value);
+            const porc=total>0?(val/total*100).toFixed(1):0;
+            document.getElementById("porc-"+id).textContent=porc>0?`${porc}% del presupuesto`:'';
         });
     }
 
-   function guardarPuntajeFinal(juego, puntaje) {
-        fetch('/api/puntajes/guardar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                juego: juego,
-                puntaje: puntaje
-            })
-        }).then(res => {
-            if (!res.ok) {
-                console.warn("⚠️ No se pudo guardar el puntaje.");
-            }
-        });
+    function guardarPuntajeFinal(juego,puntaje){
+        fetch('/api/puntajes/guardar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juego,puntaje})});
     }
 
-    function evaluar() {
-        let total = parseValue(document.getElementById("nivel").value);
-        const nivelTexto = document.getElementById("nivel").value;
+    function evaluar(){
+        let total=parseValue(document.getElementById("nivel").value);
+        const nivelVal=document.getElementById("nivel").value;
+        const vivienda=parseValue(document.getElementById("vivienda").value);
+        const alimentacion=parseValue(document.getElementById("alimentacion").value);
+        const entretenimiento=parseValue(document.getElementById("entretenimiento").value);
+        const ahorro=parseValue(document.getElementById("ahorro").value);
+        const distribuido=vivienda+alimentacion+entretenimiento+ahorro;
 
-        const vivienda = parseValue(document.getElementById("vivienda").value);
-        const alimentacion = parseValue(document.getElementById("alimentacion").value);
-        const entretenimiento = parseValue(document.getElementById("entretenimiento").value);
-        const ahorro = parseValue(document.getElementById("ahorro").value);
-        const distribuido = vivienda + alimentacion + entretenimiento + ahorro;
-
-        const eventos = [
-            { texto: "🚨 Emergencia médica, reduce $100.000", afecta: -100000 },
-            { texto: "💼 Ingreso extra de $200.000", afecta: 200000 },
-            { texto: "🔧 Daño en casa, pierde $50.000", afecta: -50000 },
-            { texto: "🎁 Bono sorpresa, ganas $150.000", afecta: 150000 }
+        const eventos=[
+            {texto:"🚨 Emergencia médica, reduce $100.000",afecta:-100000},
+            {texto:"💼 Ingreso extra de $200.000",afecta:200000},
+            {texto:"🔧 Daño en casa, pierde $50.000",afecta:-50000},
+            {texto:"🎁 Bono sorpresa, ganas $150.000",afecta:150000}
         ];
 
-        let eventoTexto = "";
-        if (nivelTexto == "600000" && Math.random() < 0.5) {
-            const evento = eventos[Math.floor(Math.random() * eventos.length)];
-            total += evento.afecta;
-            eventoTexto = `<p><strong>⚠️ Evento inesperado:</strong> ${evento.texto}</p>`;
+        let eventoHtml="";
+        if(nivelVal=="600000"&&Math.random()<0.5){
+            const ev=eventos[Math.floor(Math.random()*eventos.length)];
+            total+=ev.afecta;
+            eventoHtml=`<div style="background:#fef3c7;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;font-size:.9rem;"><strong>⚠️ Evento inesperado:</strong> ${ev.texto}</div>`;
         }
 
-        let estrellas = 0;
-        let consejos = [];
+        let estrellas=0,consejos=[];
+        if(distribuido<=total){estrellas++;}else{consejos.push("💸 Te excediste del presupuesto disponible.");}
+        if(ahorro>=0.2*total){estrellas++;}else{consejos.push("💎 Ahorra al menos el 20% de tu presupuesto.");}
+        if(entretenimiento<0.25*total){estrellas++;}else{consejos.push("🎮 Trata de no gastar tanto en entretenimiento.");}
 
-        if (distribuido > total) {
-            consejos.push("💸 Te excediste del presupuesto disponible.");
-        } else {
-            estrellas++;
-        }
+        let mensaje=estrellas===3?"🎉 <strong>¡Excelente!</strong> Tomaste decisiones muy sabias.":
+            estrellas===2?"⚠️ <strong>Aceptable</strong>, pero puedes mejorar.":"😓 <strong>Necesitas mejorar</strong> tu planificación.";
 
-        if (ahorro >= 0.2 * total) {
-            estrellas++;
-        } else {
-            consejos.push("💎 Ahorra al menos el 20% de tu presupuesto.");
-        }
+        const color=estrellas===3?"#dcfce7;color:#166534":estrellas===2?"#fef3c7;color:#92400e":"#fee2e2;color:#991b1b";
 
-        if (entretenimiento < 0.25 * total) {
-            estrellas++;
-        } else {
-            consejos.push("🎮 Trata de no gastar tanto en entretenimiento.");
-        }
-
-        let mensaje = "";
-        if (estrellas === 3) {
-            mensaje = "🎉 <strong>¡Excelente!</strong> Tomaste decisiones muy sabias.";
-        } else if (estrellas === 2) {
-            mensaje = "⚠️ <strong>Aceptable</strong> pero puedes mejorar tus decisiones.";
-        } else {
-            mensaje = "😓 <strong>Necesitas mejorar</strong> tu planificación financiera.";
-        }
-
-        const resultado = document.getElementById("resultado");
-        resultado.className = "result-box bg-light border";
+        const resultado=document.getElementById("resultado");
         resultado.classList.remove("d-none");
-        resultado.innerHTML = `
-            ${eventoTexto}
-            <div class="stars">⭐ Recompensa: ${'⭐'.repeat(estrellas)}${'☆'.repeat(3 - estrellas)}</div>
-            <p class="mt-2">${mensaje}</p>
-            <p><strong>Distribuiste:</strong> ${formatPesos(distribuido)} / ${formatPesos(total)}</p>
-            <ul>${consejos.map(c => `<li>${c}</li>`).join('')}</ul>
+        resultado.style.cssText=`background:#${color};border:1px solid rgba(0,0,0,.08);`;
+        resultado.innerHTML=`
+            ${eventoHtml}
+            <div style="font-size:1.5rem;margin-bottom:.5rem;">${'⭐'.repeat(estrellas)}${'☆'.repeat(3-estrellas)}</div>
+            <p>${mensaje}</p>
+            <p style="font-size:.88rem;"><strong>Distribuiste:</strong> ${formatPesos(distribuido)} de ${formatPesos(total)}</p>
+            ${consejos.length?'<ul style="margin:0;padding-left:1.2rem;font-size:.88rem;">'+consejos.map(c=>`<li>${c}</li>`).join('')+'</ul>':''}
         `;
-
-        // ✅ Guardar puntaje
-        guardarPuntajeFinal("ahorra_gana", estrellas);
+        guardarPuntajeFinal("ahorra_gana",estrellas);
     }
-
-    actualizarPorcentajes(); // Inicial
+    actualizarPorcentajes();
 </script>
-
 </body>
 </html>

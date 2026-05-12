@@ -2,138 +2,105 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Aprende | Educación Financiera</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Aprende - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to bottom right, #f0f8ff, #e0f7fa);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        h2 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #0d6efd;
-            animation: fadeInDown 0.7s ease-in-out;
-        }
-
-        .card-category {
-            border-radius: 20px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .card-category:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .card-body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .btn-light, .btn-dark {
-            font-weight: 600;
-            border-radius: 10px;
-        }
-
-        .small {
-            font-size: 0.85rem;
-            font-style: italic;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        body { background: radial-gradient(circle at top left,rgba(13,110,253,.08),transparent 28%),radial-gradient(circle at bottom right,rgba(25,135,84,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        .main-content { margin-left:260px; padding:2rem; min-height:100vh; }
+        .cat-card { background:#fff; border-radius:20px; box-shadow:0 8px 24px rgba(15,23,42,.08); border:none; overflow:hidden; transition:transform .2s,box-shadow .2s; cursor:pointer; }
+        .cat-card:hover { transform:translateY(-6px); box-shadow:0 16px 36px rgba(15,23,42,.13); }
+        .cat-icon { height:140px; display:flex; align-items:center; justify-content:center; font-size:3rem; }
+        .btn-zen { border-radius:12px; font-weight:600; padding:.65rem 1.5rem; }
+        @media(max-width:991px){.main-content{margin-left:0}}
     </style>
 </head>
 <body>
-<div class="container py-5">
-    <h2 class="text-center mb-5">🎓 Aprende sobre Finanzas</h2>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+
+    <div class="mb-4">
+        <h2 style="font-size:1.6rem;font-weight:700;">🎓 Aprende sobre finanzas</h2>
+        <p class="text-muted">Explora las categorías y completa las lecciones a tu ritmo.</p>
+    </div>
+
     <div class="row g-4">
-
-        <!-- Ahorro -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card bg-success text-white card-category h-100">
-                <div class="card-body text-center">
-                    <div class="icon">💰</div>
-                    <h5 class="card-title">Ahorro</h5>
-                    <p class="card-text">Descubre técnicas para guardar dinero y cumplir tus sueños.</p>
-                    <a href="/aprende/ahorro" class="btn btn-light mt-auto">Comenzar</a>
-                    <p class="mt-3 small text-white-50">
-                        <span th:text="${completadasPorCategoria['ahorro']} + ' / ' + ${totalPorCategoria['ahorro']} + ' completadas'">0 / 0 completadas</span>
-                    </p>
+        <div class="col-sm-6 col-lg-3">
+            <a href="/aprende/ahorro" class="text-decoration-none">
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">💰</div>
+                    <div class="p-3">
+                        <h5 class="fw-bold mb-1">Ahorro</h5>
+                        <p class="text-muted mb-2" style="font-size:.88rem;">Técnicas para guardar dinero y cumplir tus sueños.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span style="font-size:.8rem;color:#10b981;font-weight:600;"
+                                  th:text="${completadasPorCategoria['ahorro']} + '/' + ${totalPorCategoria['ahorro']} + ' completadas'">0/0</span>
+                            <span style="font-size:.8rem;color:#0d6efd;">Ver lecciones →</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Presupuesto -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card bg-primary text-white card-category h-100">
-                <div class="card-body text-center">
-                    <div class="icon">📊</div>
-                    <h5 class="card-title">Presupuesto</h5>
-                    <p class="card-text">Aprende a organizar tus ingresos y gastos de forma eficiente.</p>
-                    <a href="/aprende/presupuesto" class="btn btn-light mt-auto">Comenzar</a>
-                    <p class="mt-3 small text-white-50">
-                        <span th:text="${completadasPorCategoria['presupuesto']} + ' / ' + ${totalPorCategoria['presupuesto']} + ' completadas'">0 / 0 completadas</span>
-                    </p>
+        <div class="col-sm-6 col-lg-3">
+            <a href="/aprende/presupuesto" class="text-decoration-none">
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">📊</div>
+                    <div class="p-3">
+                        <h5 class="fw-bold mb-1">Presupuesto</h5>
+                        <p class="text-muted mb-2" style="font-size:.88rem;">Organiza tus ingresos y gastos de forma eficiente.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span style="font-size:.8rem;color:#10b981;font-weight:600;"
+                                  th:text="${completadasPorCategoria['presupuesto']} + '/' + ${totalPorCategoria['presupuesto']} + ' completadas'">0/0</span>
+                            <span style="font-size:.8rem;color:#0d6efd;">Ver lecciones →</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Deudas -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card bg-danger text-white card-category h-100">
-                <div class="card-body text-center">
-                    <div class="icon">💳</div>
-                    <h5 class="card-title">Deudas</h5>
-                    <p class="card-text">Comprende cómo funcionan las deudas y cómo manejarlas.</p>
-                    <a href="/aprende/deuda" class="btn btn-light mt-auto">Comenzar</a>
-                    <p class="mt-3 small text-white-50">
-                        <span th:text="${completadasPorCategoria['deuda']} + ' / ' + ${totalPorCategoria['deuda']} + ' completadas'">0 / 0 completadas</span>
-                    </p>
+        <div class="col-sm-6 col-lg-3">
+            <a href="/aprende/deuda" class="text-decoration-none">
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">💳</div>
+                    <div class="p-3">
+                        <h5 class="fw-bold mb-1">Deudas</h5>
+                        <p class="text-muted mb-2" style="font-size:.88rem;">Entiende cómo funcionan las deudas y cómo manejarlas.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span style="font-size:.8rem;color:#10b981;font-weight:600;"
+                                  th:text="${completadasPorCategoria['deuda']} + '/' + ${totalPorCategoria['deuda']} + ' completadas'">0/0</span>
+                            <span style="font-size:.8rem;color:#0d6efd;">Ver lecciones →</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Consejos -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card bg-info text-dark card-category h-100">
-                <div class="card-body text-center">
-                    <div class="icon">🧠</div>
-                    <h5 class="card-title">Consejos útiles</h5>
-                    <p class="card-text">Explora trucos prácticos y hábitos financieros inteligentes.</p>
-                    <a href="/aprende/consejos" class="btn btn-dark mt-auto">Comenzar</a>
-                    <p class="mt-3 small text-dark">
-                        <span th:text="${completadasPorCategoria['consejos']} + ' / ' + ${totalPorCategoria['consejos']} + ' completadas'">0 / 0 completadas</span>
-                    </p>
+        <div class="col-sm-6 col-lg-3">
+            <a href="/aprende/consejos" class="text-decoration-none">
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">🧠</div>
+                    <div class="p-3">
+                        <h5 class="fw-bold mb-1">Consejos útiles</h5>
+                        <p class="text-muted mb-2" style="font-size:.88rem;">Trucos prácticos y hábitos financieros inteligentes.</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span style="font-size:.8rem;color:#10b981;font-weight:600;"
+                                  th:text="${completadasPorCategoria['consejos']} + '/' + ${totalPorCategoria['consejos']} + ' completadas'">0/0</span>
+                            <span style="font-size:.8rem;color:#0d6efd;">Ver lecciones →</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Botón volver -->
     <div class="text-center mt-5">
-        <a th:href="@{/dashboard}" class="btn btn-warning px-5 py-2">← Volver al inicio</a>
+        <a th:href="@{/dashboard}" class="btn btn-zen btn-outline-secondary">← Volver al inicio</a>
     </div>
 </div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

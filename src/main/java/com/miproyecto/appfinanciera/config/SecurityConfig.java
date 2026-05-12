@@ -35,7 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/puntajes/**")
+                        .ignoringRequestMatchers("/api/puntajes/**", "/api/chat", "/api/gastos/**")
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/css/**",
                                 "/js/**",
+                                "/img/**",
                                 "/images/**",
                                 "/webjars/**",
                                 "/favicon.ico"

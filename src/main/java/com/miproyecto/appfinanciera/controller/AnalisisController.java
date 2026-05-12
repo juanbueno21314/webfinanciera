@@ -5,6 +5,7 @@ import com.miproyecto.appfinanciera.model.Ingreso;
 import com.miproyecto.appfinanciera.model.Usuario;
 import com.miproyecto.appfinanciera.repository.DeudaRepository;
 import com.miproyecto.appfinanciera.repository.IngresoRepository;
+import com.miproyecto.appfinanciera.service.ClaudeAIService;
 import com.miproyecto.appfinanciera.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,9 @@ public class AnalisisController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private ClaudeAIService claudeAIService;
     @GetMapping
     public String mostrarAnalisis(Model model, Authentication auth) {
         Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(auth);
@@ -67,6 +71,9 @@ public class AnalisisController {
             tipoConsejo = "dark";
         }
 
+        // Análisis narrativo generado por IA
+        String analisisIA = generarAnalisisIA(ingresos, deudas, porcentajeEndeudamiento);
+
         // ✅ Atributos para Thymeleaf
         model.addAttribute("ingresos", ingresos);
         model.addAttribute("deudas", deudas);
@@ -77,6 +84,7 @@ public class AnalisisController {
         model.addAttribute("porcentajeEndeudamiento", Math.round(porcentajeEndeudamiento * 10.0) / 10.0);
         model.addAttribute("consejoFinanciero", consejo);
         model.addAttribute("tipoConsejo", tipoConsejo);
+        model.addAttribute("analisisIA", analisisIA);
 
         return "analisis/analisis";
     }
@@ -128,5 +136,31 @@ public class AnalisisController {
     public String eliminarDeuda(@RequestParam Long id) {
         deudaRepository.deleteById(id);
         return "redirect:/analisis";
+    }
+
+    private String generarAnalisisIA(List<Ingreso> ingresos, List<Deuda> deudas, double porcentajeEndeudamiento) {
+        if (ingresos.isEmpty() && deudas.isEmpty()) {
+            return "Registra tus ingresos y deudas para recibir un análisis personalizado de tu situación financiera.";
+        }
+
+        StringBuilder detalle = new StringBuilder();
+        ingresos.forEach(i -> detalle.append("Ingreso: ").append(i.getNombre())
+                .append(" (").append(i.getCategoria()).append(") $").append(i.getMonto()).append(". "));
+        deudas.forEach(d -> detalle.append("Deuda: ").append(d.getNombre())
+                .append(" (").append(d.getCategoria()).append(") $").append(d.getMonto()).append(". "));
+
+        String prompt = String.format("""
+                Eres un asesor financiero experto. Analiza la situación financiera de este usuario:
+                %s
+                Porcentaje de endeudamiento: %.1f%%
+
+                Proporciona un análisis claro en 3 oraciones en español:
+                1. Diagnóstico de su situación actual.
+                2. El mayor riesgo o punto a mejorar.
+                3. Una acción concreta que puede tomar esta semana.
+                Sin asteriscos ni markdown, solo texto plano.
+                """, detalle.toString(), porcentajeEndeudamiento);
+
+        return claudeAIService.preguntar(prompt);
     }
 }

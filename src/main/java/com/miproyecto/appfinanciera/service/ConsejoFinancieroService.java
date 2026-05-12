@@ -1,5 +1,6 @@
 package com.miproyecto.appfinanciera.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -8,6 +9,9 @@ import java.util.List;
 
 @Service
 public class ConsejoFinancieroService {
+
+    @Autowired
+    private ClaudeAIService claudeAIService;
 
     private final List<String> consejos = Arrays.asList(
             "💡 Lleva un registro de tus ingresos y gastos cada mes.",
@@ -35,5 +39,19 @@ public class ConsejoFinancieroService {
     public String obtenerConsejoAleatorio() {
         Collections.shuffle(consejos);
         return consejos.get(0);
+    }
+
+    public String obtenerConsejoPersonalizado(double ingresos, double deudas, double gastos, double ahorro) {
+        String prompt = String.format("""
+                Eres un asesor financiero personal amigable. El usuario tiene estos datos financieros:
+                - Ingresos totales: $%.2f
+                - Deudas totales: $%.2f
+                - Gastos del mes actual: $%.2f
+                - Ahorro acumulado: $%.2f
+
+                Genera un consejo financiero personalizado en español. Máximo 2 oraciones.
+                Usa los números concretos del usuario. Sin asteriscos ni formato markdown, solo texto plano.
+                """, ingresos, deudas, gastos, ahorro);
+        return claudeAIService.preguntar(prompt);
     }
 }
