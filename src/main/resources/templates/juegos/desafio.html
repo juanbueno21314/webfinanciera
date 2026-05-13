@@ -9,19 +9,33 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: radial-gradient(circle at top left,rgba(220,38,38,.07),transparent 28%),radial-gradient(circle at bottom right,rgba(13,110,253,.06),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
+        body { background: radial-gradient(circle at top left,rgba(220,38,38,.1),transparent 30%),radial-gradient(circle at bottom right,rgba(13,110,253,.07),transparent 30%),linear-gradient(135deg,#f8fafc,#eef2f7); font-family:"Segoe UI",sans-serif; color:#0f172a; }
         .main-content { margin-left:260px; padding:2rem; min-height:100vh; display:flex; align-items:center; justify-content:center; }
-        .game-box { background:#fff; border-radius:24px; box-shadow:0 12px 36px rgba(15,23,42,.1); padding:2.5rem; width:100%; max-width:680px; }
-        .timer-ring { width:72px; height:72px; border-radius:50%; border:4px solid #fee2e2; background:#fff; display:flex; align-items:center; justify-content:center; font-size:1.4rem; font-weight:700; color:#dc2626; transition:border-color .5s; }
-        .timer-ring.urgent { border-color:#dc2626; background:#fff5f5; animation:pulse .5s infinite alternate; }
-        @keyframes pulse{from{box-shadow:0 0 0 0 rgba(220,38,38,.3)}to{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
-        .question-text { font-size:1.2rem; font-weight:600; line-height:1.5; min-height:80px; }
+        .game-box { background:#fff; border-radius:24px; box-shadow:0 12px 36px rgba(15,23,42,.1); padding:2.5rem; width:100%; max-width:700px; }
+
+        /* Timer circular */
+        .timer-wrap { position:relative; width:72px; height:72px; flex-shrink:0; }
+        .timer-svg { transform:rotate(-90deg); }
+        .timer-track { fill:none; stroke:#fee2e2; stroke-width:5; }
+        .timer-fill { fill:none; stroke:#dc2626; stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset .9s linear, stroke .5s; stroke-dasharray:188.5; stroke-dashoffset:0; }
+        .timer-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:1.3rem; font-weight:800; color:#dc2626; }
+
+        /* Racha */
+        .streak-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.35rem .85rem; border-radius:999px; font-weight:700; font-size:.85rem; transition:all .3s; }
+        .streak-badge.cold { background:#f1f5f9; color:#94a3b8; }
+        .streak-badge.hot { background:linear-gradient(135deg,#ff6b6b,#ff9f43); color:#fff; box-shadow:0 4px 12px rgba(255,107,107,.35); animation:flame-pulse .6s ease infinite alternate; }
+        @keyframes flame-pulse { from{transform:scale(1)} to{transform:scale(1.05)} }
+
+        .question-text { font-size:1.15rem; font-weight:600; line-height:1.55; min-height:80px; color:#0f172a; }
         .btn-answer { width:48%; padding:.85rem; font-size:1rem; font-weight:600; border-radius:14px; border:2px solid #e2e8f0; background:#fff; cursor:pointer; transition:all .2s; }
-        .btn-answer:hover:not(:disabled) { border-color:#0d6efd; background:#eff6ff; }
+        .btn-answer:hover:not(:disabled) { border-color:#0d6efd; background:#eff6ff; transform:translateY(-2px); }
         .btn-answer.correct { background:#dcfce7; border-color:#16a34a; color:#166534; }
-        .btn-answer.incorrect { background:#fee2e2; border-color:#dc2626; color:#991b1b; }
+        .btn-answer.incorrect { background:#fee2e2; border-color:#dc2626; color:#991b1b; animation:shake .3s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
         .feedback-box { border-radius:14px; padding:1rem 1.25rem; margin-top:1.25rem; font-size:.93rem; line-height:1.5; }
-        .btn-zen { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
+        .multiplier-pop { display:inline-block; font-weight:800; font-size:1.1rem; animation:pop-in .3s ease; }
+        @keyframes pop-in { 0%{transform:scale(.5);opacity:0} 100%{transform:scale(1);opacity:1} }
+        .score-display { font-size:1.5rem; font-weight:800; color:#0d6efd; }
         @media(max-width:991px){.main-content{margin-left:0}}
         @media(max-width:576px){.btn-answer{width:100%;margin-bottom:.5rem}}
     </style>
@@ -29,13 +43,30 @@
 <body>
 <div th:replace="fragments/sidebar :: sidebar"></div>
 <div class="main-content">
-    <div class="game-box text-center" id="desafio">
-        <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="game-box" id="desafio">
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
             <div>
                 <h4 class="fw-bold mb-0">⚡ Modo Desafío</h4>
                 <p class="text-muted mb-0" style="font-size:.82rem;" id="contador">Pregunta 1 de 5</p>
             </div>
-            <div class="timer-ring" id="timer">10</div>
+            <div class="d-flex align-items-center gap-3">
+                <div id="streakBadge" class="streak-badge cold">🔥 Racha: <strong id="streakNum">0</strong></div>
+                <div class="timer-wrap">
+                    <svg class="timer-svg" width="72" height="72" viewBox="0 0 72 72">
+                        <circle class="timer-track" cx="36" cy="36" r="30"/>
+                        <circle class="timer-fill" id="timerFill" cx="36" cy="36" r="30"/>
+                    </svg>
+                    <div class="timer-text" id="timerNum">10</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Puntuación -->
+        <div class="text-center mb-3">
+            <div style="font-size:.75rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Puntuación</div>
+            <div class="score-display" id="scorePts">0 pts</div>
+            <div id="multiBadge" style="font-size:.8rem;color:#94a3b8;margin-top:.15rem;min-height:1.2em;"></div>
         </div>
 
         <p class="question-text mb-4" id="pregunta">Cargando pregunta...</p>
@@ -48,89 +79,148 @@
         <div id="feedback" class="feedback-box d-none"></div>
 
         <div class="text-center mt-4">
-            <a href="/juegos" class="btn btn-zen btn-outline-secondary btn-sm">← Volver a juegos</a>
+            <a href="/juegos" class="btn btn-outline-secondary" style="border-radius:10px;font-size:.88rem;">← Volver a juegos</a>
         </div>
     </div>
 </div>
 
 <script>
-    const preguntas = [
-        {texto:"Usar la tarjeta de crédito para todo es siempre una buena estrategia de ahorro.",respuesta:false,explicacion:"Usarla en exceso puede generar deudas por intereses altos."},
-        {texto:"Tener un fondo de emergencia te protege en momentos imprevistos.",respuesta:true,explicacion:"Es clave para evitar endeudarse cuando ocurre algo inesperado."},
-        {texto:"Comprar en cuotas sin intereses es lo mismo que pagar al contado.",respuesta:false,explicacion:"Aunque no hay intereses, te comprometes a pagos futuros que afectan tu flujo de caja."},
-        {texto:"Guardar el 10% de tu ingreso cada mes es una buena meta de ahorro.",respuesta:true,explicacion:"Ahorrar un porcentaje fijo ayuda a crear hábitos financieros."},
-        {texto:"Invertir siempre es riesgoso y se debe evitar si eres joven.",respuesta:false,explicacion:"Mientras más joven, más tiempo tienes para asumir riesgos y aprender."}
-    ].sort(()=>Math.random()-.5);
+const preguntas = [
+    {texto:"Usar la tarjeta de crédito para todo es siempre una buena estrategia de ahorro.",respuesta:false,exp:"Usarla en exceso genera deudas por intereses altos si no pagas el total cada mes."},
+    {texto:"Tener un fondo de emergencia te protege en momentos imprevistos.",respuesta:true,exp:"Un fondo de 3 a 6 meses de gastos es esencial para no endeudarte ante emergencias."},
+    {texto:"Comprar en cuotas sin intereses es exactamente lo mismo que pagar al contado.",respuesta:false,exp:"Aunque no hay intereses, comprometes tu flujo de caja futuro con pagos fijos."},
+    {texto:"Guardar al menos el 10% de tu ingreso cada mes es una buena meta de ahorro.",respuesta:true,exp:"Ahorrar un porcentaje fijo desde el primer día crea hábitos financieros sólidos."},
+    {texto:"Invertir siempre es riesgoso y se debe evitar si eres joven.",respuesta:false,exp:"Mientras más joven, más tiempo tienes para recuperarte de pérdidas y hacer crecer tu dinero."},
+    {texto:"El interés compuesto beneficia al ahorrador igual que perjudica al deudor.",respuesta:true,exp:"El mismo efecto exponencial que encarece una deuda puede hacer crecer tus ahorros."},
+    {texto:"Un presupuesto personal solo sirve si tienes deudas.",respuesta:false,exp:"El presupuesto es útil para cualquier persona; te da control sobre a dónde va tu dinero."},
+    {texto:"La inflación reduce el poder adquisitivo del dinero con el tiempo.",respuesta:true,exp:"Con inflación, el mismo dinero compra menos bienes en el futuro que hoy."},
+    {texto:"Pagar solo el mínimo de la tarjeta de crédito evita que te cobren intereses.",respuesta:false,exp:"Pagar el mínimo genera intereses sobre el saldo restante, que pueden triplicar la deuda."},
+    {texto:"Diversificar inversiones significa poner todo el dinero en el mejor activo disponible.",respuesta:false,exp:"Diversificar es distribuir en varios activos distintos para reducir el riesgo total."},
+    {texto:"Es posible invertir con poco dinero usando fondos de inversión colectiva.",respuesta:true,exp:"Los fondos colectivos permiten a pequeños inversionistas acceder a carteras diversificadas."},
+    {texto:"Una persona que gana mucho dinero necesariamente tiene buena salud financiera.",respuesta:false,exp:"El ingreso alto sin control de gastos puede llevar a deudas igual o más graves."},
+    {texto:"El seguro de vida es solo para personas mayores o con enfermedades graves.",respuesta:false,exp:"El seguro de vida es más barato y útil cuanto más joven eres, y protege a tu familia."},
+    {texto:"Tener deudas siempre es señal de mala gestión financiera.",respuesta:false,exp:"Las deudas bien manejadas, como un crédito de vivienda o estudio, pueden ser inversiones valiosas."},
+    {texto:"Antes de invertir, es recomendable tener un fondo de emergencia.",respuesta:true,exp:"Sin un colchón de emergencia, un imprevisto puede obligarte a vender inversiones en mal momento."}
+].sort(() => Math.random() - .5).slice(0, 5);
 
-    let index=0, aciertos=0, tiempo=10, intervalo;
+let idx = 0, racha = 0, puntos = 0, tiempo = 10, intervalo;
+const CIRC = 2 * Math.PI * 30; // 188.5
 
-    function iniciarTemporizador(){
-        tiempo=10;
-        const timerEl=document.getElementById("timer");
-        timerEl.textContent=tiempo;
-        timerEl.classList.remove("urgent");
-        clearInterval(intervalo);
-        intervalo=setInterval(()=>{
-            tiempo--;
-            timerEl.textContent=tiempo;
-            if(tiempo<=3)timerEl.classList.add("urgent");
-            if(tiempo<=0){clearInterval(intervalo);mostrarFeedback(false,true);}
-        },1000);
+function actualizarScore() {
+    document.getElementById("scorePts").textContent = puntos + " pts";
+}
+
+function actualizarRacha() {
+    const badge = document.getElementById("streakBadge");
+    document.getElementById("streakNum").textContent = racha;
+    if (racha >= 3) {
+        badge.className = "streak-badge hot";
+    } else {
+        badge.className = "streak-badge cold";
+    }
+    const multi = racha >= 3 ? 3 : racha >= 2 ? 2 : 1;
+    const multiEl = document.getElementById("multiBadge");
+    multiEl.textContent = multi > 1 ? `🔥 Multiplicador x${multi} activo` : "";
+    multiEl.style.color = multi > 1 ? "#ff6b6b" : "#94a3b8";
+}
+
+function iniciarTimer() {
+    tiempo = 10;
+    const fill = document.getElementById("timerFill");
+    const num = document.getElementById("timerNum");
+    fill.style.stroke = "#dc2626";
+    fill.style.strokeDashoffset = 0;
+    num.style.color = "#dc2626";
+    clearInterval(intervalo);
+    intervalo = setInterval(() => {
+        tiempo--;
+        const pct = tiempo / 10;
+        fill.style.strokeDashoffset = CIRC * (1 - pct);
+        num.textContent = tiempo;
+        if (tiempo <= 3) {
+            fill.style.stroke = "#dc2626";
+            num.style.color = "#dc2626";
+        }
+        if (tiempo <= 0) { clearInterval(intervalo); mostrarFeedback(false, true); }
+    }, 1000);
+}
+
+function cargarPregunta() {
+    document.getElementById("pregunta").textContent = preguntas[idx].texto;
+    document.getElementById("contador").textContent = `Pregunta ${idx+1} de ${preguntas.length}`;
+    document.getElementById("feedback").classList.add("d-none");
+    [document.getElementById("btnVerdadero"), document.getElementById("btnFalso")].forEach(b => {
+        b.disabled = false;
+        b.className = "btn-answer";
+    });
+    iniciarTimer();
+}
+
+function responder(opcion) {
+    clearInterval(intervalo);
+    mostrarFeedback(preguntas[idx].respuesta === opcion);
+}
+
+function mostrarFeedback(correcto, porTiempo = false) {
+    const actual = preguntas[idx];
+    const multi = racha >= 3 ? 3 : racha >= 2 ? 2 : 1;
+
+    if (correcto) {
+        racha++;
+        const ganados = 10 * multi;
+        puntos += ganados;
+        actualizarScore();
+    } else {
+        racha = 0;
+    }
+    actualizarRacha();
+
+    document.getElementById("btnVerdadero").className = "btn-answer " + (actual.respuesta ? "correct" : "incorrect");
+    document.getElementById("btnFalso").className = "btn-answer " + (!actual.respuesta ? "correct" : "incorrect");
+    document.getElementById("btnVerdadero").disabled = true;
+    document.getElementById("btnFalso").disabled = true;
+
+    const fb = document.getElementById("feedback");
+    fb.classList.remove("d-none");
+    if (correcto) {
+        fb.style.cssText = "background:#dcfce7;color:#166534;border:1px solid #bbf7d0;";
+        const multiTxt = multi > 1 ? ` <span class="multiplier-pop">¡x${multi}! +${10*multi} pts</span>` : ` +10 pts`;
+        fb.innerHTML = `✔️ <strong>Correcto</strong>${multiTxt} — ${actual.exp}`;
+    } else {
+        fb.style.cssText = "background:#fee2e2;color:#991b1b;border:1px solid #fecaca;";
+        fb.innerHTML = `❌ <strong>${porTiempo ? 'Tiempo agotado' : 'Incorrecto'}</strong> — ${actual.exp}`;
     }
 
-    function cargarPregunta(){
-        document.getElementById("pregunta").textContent=preguntas[index].texto;
-        document.getElementById("contador").textContent=`Pregunta ${index+1} de ${preguntas.length}`;
-        document.getElementById("feedback").classList.add("d-none");
-        [document.getElementById("btnVerdadero"),document.getElementById("btnFalso")].forEach(b=>{b.disabled=false;b.className="btn-answer";});
-        iniciarTemporizador();
-    }
+    setTimeout(() => {
+        idx++;
+        if (idx < preguntas.length) cargarPregunta();
+        else mostrarResultados();
+    }, 2500);
+}
 
-    function responder(opcion){
-        clearInterval(intervalo);
-        mostrarFeedback(preguntas[index].respuesta===opcion);
-    }
+function mostrarResultados() {
+    const aciertos = preguntas.filter((_, i) => i < idx).length; // aproximación
+    guardarPuntaje("modo_desafio", idx);
+    const emoji = puntos >= 40 ? '🏆' : puntos >= 20 ? '🎯' : '📘';
+    const nota = puntos >= 40 ? '¡Eres un experto bajo presión!' : puntos >= 20 ? 'Buen intento, sigue practicando.' : 'Revisa las lecciones para mejorar.';
+    document.getElementById("desafio").innerHTML = `
+        <div class="text-center py-3">
+            <div style="font-size:3.5rem;margin-bottom:1rem;">${emoji}</div>
+            <h4 class="fw-bold">¡Desafío completado!</h4>
+            <p class="text-muted">Puntuación final: <span style="font-size:1.3rem;font-weight:800;color:#0d6efd;">${puntos} pts</span></p>
+            <p>${nota}</p>
+            <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
+                <a href="/juegos/desafio" class="btn btn-danger" style="border-radius:12px;font-weight:600;padding:.7rem 1.5rem;">Intentar de nuevo</a>
+                <a href="/juegos" class="btn btn-outline-secondary" style="border-radius:12px;font-weight:600;padding:.7rem 1.5rem;">Volver a juegos</a>
+            </div>
+        </div>`;
+}
 
-    function mostrarFeedback(correcto,porTiempo=false){
-        const actual=preguntas[index];
-        if(correcto)aciertos++;
-        document.getElementById("btnVerdadero").className="btn-answer "+(actual.respuesta?"correct":"incorrect");
-        document.getElementById("btnFalso").className="btn-answer "+(!actual.respuesta?"correct":"incorrect");
-        document.getElementById("btnVerdadero").disabled=true;
-        document.getElementById("btnFalso").disabled=true;
+function guardarPuntaje(juego, puntaje) {
+    fetch('/api/puntajes/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({juego, puntaje}) });
+}
 
-        const fb=document.getElementById("feedback");
-        fb.classList.remove("d-none");
-        fb.style.cssText=correcto?"background:#dcfce7;color:#166534;border:1px solid #bbf7d0;":"background:#fee2e2;color:#991b1b;border:1px solid #fecaca;";
-        fb.innerHTML=correcto?`✔️ <strong>Correcto:</strong> ${actual.explicacion}`:`❌ <strong>${porTiempo?'Tiempo agotado':'Incorrecto'}:</strong> ${actual.explicacion}`;
-
-        setTimeout(()=>{
-            index++;
-            if(index<preguntas.length){cargarPregunta();}else{mostrarResultados();}
-        },2500);
-    }
-
-    function mostrarResultados(){
-        const nota=aciertos===preguntas.length?'🏆 ¡Eres un experto bajo presión!':aciertos>=3?'🎯 Buen intento, sigue practicando.':'📘 Revisa las lecciones para mejorar.';
-        guardarPuntajeFinal("modo_desafio",aciertos);
-        document.getElementById("desafio").innerHTML=`
-            <div class="py-3">
-                <div style="font-size:3.5rem;margin-bottom:1rem;">${aciertos===preguntas.length?'🏆':aciertos>=3?'🎯':'📘'}</div>
-                <h4 class="fw-bold">¡Desafío completado!</h4>
-                <p class="text-muted">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
-                <p>${nota}</p>
-                <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
-                    <a href="/juegos/desafio" class="btn btn-zen btn-danger">Intentar de nuevo</a>
-                    <a href="/juegos" class="btn btn-zen btn-outline-secondary">Volver a juegos</a>
-                </div>
-            </div>`;
-    }
-
-    function guardarPuntajeFinal(juego,puntaje){
-        fetch('/api/puntajes/guardar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juego,puntaje})});
-    }
-
-    cargarPregunta();
+cargarPregunta();
 </script>
 </body>
 </html>

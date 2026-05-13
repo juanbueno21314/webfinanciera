@@ -31,6 +31,11 @@ public class Usuario {
 
     private String versionPoliticaDatos;
 
+    @Column(length = 64)
+    private String resetToken;
+
+    private LocalDateTime resetTokenExpiry;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "usuarios_roles",
@@ -126,6 +131,12 @@ public class Usuario {
     public void setVersionPoliticaDatos(String versionPoliticaDatos) {
         this.versionPoliticaDatos = versionPoliticaDatos;
     }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 
     public String getNombreCompleto() {
         String n = nombre != null ? nombre : "";

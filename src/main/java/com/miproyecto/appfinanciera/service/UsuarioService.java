@@ -45,6 +45,14 @@ public class UsuarioService {
         return usuarioRepo.save(usuario);
     }
 
+    public boolean cambiarContrasena(Usuario usuario, String contrasenaActual, String nuevaContrasena) {
+        if ("GOOGLE".equalsIgnoreCase(usuario.getProveedor())) return false;
+        if (!passwordEncoder.matches(contrasenaActual, usuario.getContrasena())) return false;
+        usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
+        usuarioRepo.save(usuario);
+        return true;
+    }
+
     public Usuario buscarPorEmail(String email) {
         Optional<Usuario> usuario = usuarioRepo.findByEmail(email);
         return usuario.orElse(null);

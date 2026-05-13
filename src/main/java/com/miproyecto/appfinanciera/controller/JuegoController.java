@@ -39,25 +39,26 @@ public class JuegoController {
             mejorDesafio = topDesafio.map(PuntajeMinijuego::getPuntaje).orElse(0);
         }
 
+        Optional<PuntajeMinijuego> topMillonario = puntajeRepo.findTopByUsuarioAndJuegoOrderByPuntajeDesc(usuario, "millonario");
+        int mejorMillonario = topMillonario.map(PuntajeMinijuego::getPuntaje).orElse(0);
+
         model.addAttribute("mejorVF", mejorVF);
         model.addAttribute("mejorAhorra", mejorAhorra);
         model.addAttribute("mejorDesafio", mejorDesafio);
+        model.addAttribute("mejorMillonario", mejorMillonario);
 
         return "juegos/index";
     }
 
     @GetMapping("/juegos/verdaderoFalso")
-    public String juegoVerdaderoFalso() {
-        return "juegos/verdaderoFalso";
-    }
+    public String juegoVerdaderoFalso() { return "juegos/verdaderoFalso"; }
 
     @GetMapping("/juegos/desafio")
-    public String mostrarModoDesafio() {
-        return "juegos/desafio";
-    }
+    public String mostrarModoDesafio() { return "juegos/desafio"; }
 
     @GetMapping("/juegos/ahorraGana")
-    public String mostrarJuegoAhorraYGana() {
-        return "juegos/ahorraGana";
-    }
+    public String mostrarJuegoAhorraYGana() { return "juegos/ahorraGana"; }
+
+    @GetMapping("/juegos/millonario")
+    public String mostrarMillonario() { return "juegos/millonario"; }
 }

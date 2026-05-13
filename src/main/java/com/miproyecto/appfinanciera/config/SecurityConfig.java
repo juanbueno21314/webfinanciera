@@ -44,6 +44,8 @@ public class SecurityConfig {
                                 "/registro",
                                 "/error",
                                 "/politica-datos",
+                                "/recuperar-contrasena",
+                                "/restablecer-contrasena",
                                 "/oauth2/**",
                                 "/css/**",
                                 "/js/**",

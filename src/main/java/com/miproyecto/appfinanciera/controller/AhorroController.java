@@ -3,19 +3,14 @@ package com.miproyecto.appfinanciera.controller;
 import com.miproyecto.appfinanciera.model.MetaAhorro;
 import com.miproyecto.appfinanciera.model.Usuario;
 import com.miproyecto.appfinanciera.repository.MetaAhorroRepository;
-import com.miproyecto.appfinanciera.service.UsuarioDetalles;
-
 import com.miproyecto.appfinanciera.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.NumberFormat;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -31,27 +26,12 @@ public class AhorroController {
 
     @GetMapping("")
     public String redirigirAhorro(Model model, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
-        }
+        Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(auth);
+        if (usuario == null) return "redirect:/login";
 
-        String email;
-        Object principal = auth.getPrincipal();
-        if (principal instanceof UsuarioDetalles usuarioDetalles) {
-            email = usuarioDetalles.getUsername();
-        } else if (principal instanceof OidcUser oidcUser) {
-            email = oidcUser.getEmail();
-        } else {
-            return "redirect:/error";
-        }
-
-        Usuario usuario = usuarioService.buscarPorEmail(email);
         List<MetaAhorro> metas = metaAhorroRepository.findByUsuario(usuario);
 
-        boolean tieneActivas = metas.stream()
-                .anyMatch(meta -> meta.getFechaFinal() != null && meta.getFechaFinal().isAfter(LocalDate.now()));
-
-        if (tieneActivas) {
+        if (!metas.isEmpty()) {
             return "redirect:/ahorro/progreso";
         } else {
             return "redirect:/ahorro/paso1";
@@ -68,21 +48,12 @@ public class AhorroController {
     }
 
     @PostMapping("/paso1")
-    public String guardarPaso1(@ModelAttribute("metaAhorro") MetaAhorro metaAhorro) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) return "redirect:/login";
+    public String guardarPaso1(@ModelAttribute("metaAhorro") MetaAhorro metaAhorro,
+                               Authentication auth) {
+        Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(auth);
+        if (usuario == null) return "redirect:/login";
 
-        String email;
-        Object principal = auth.getPrincipal();
-        if (principal instanceof UsuarioDetalles usuarioDetalles) {
-            email = usuarioDetalles.getUsername();
-        } else if (principal instanceof OidcUser oidcUser) {
-            email = oidcUser.getEmail();
-        } else return "redirect:/error";
-
-        Usuario usuario = usuarioService.buscarPorEmail(email);
         metaAhorro.setUsuario(usuario);
-
         MetaAhorro metaGuardada = metaAhorroRepository.saveAndFlush(metaAhorro);
         return "redirect:/ahorro/paso2?id=" + metaGuardada.getId();
     }
@@ -154,19 +125,18 @@ public class AhorroController {
 
     @GetMapping("/progreso")
     public String mostrarTodasLasMetas(Model model, Authentication auth) {
-        String email = obtenerEmailUsuario(auth);
-        if (email == null) return "redirect:/login";
+        Usuario usuario = usuarioService.obtenerUsuarioPorAuthentication(auth);
+        if (usuario == null) return "redirect:/login";
 
-        Usuario usuario = usuarioService.buscarPorEmail(email);
         List<MetaAhorro> metas = metaAhorroRepository.findByUsuario(usuario);
 
         NumberFormat formato = NumberFormat.getInstance(new Locale("es", "CO"));
 
         List<Map<String, Object>> metasFormateadas = metas.stream().map(meta -> {
             Map<String, Object> datos = new HashMap<>();
-            long monto = meta.getMonto();
-            long abonado = meta.getAbonado() != null ? meta.getAbonado() : 0;
-            long progreso = monto == 0 ? 0 : (abonado * 100 / monto);
+            long monto = meta.getMonto() != null ? meta.getMonto() : 0L;
+            long abonado = meta.getAbonado() != null ? meta.getAbonado() : 0L;
+            long progreso = monto == 0 ? 0 : Math.min(100, abonado * 100 / monto);
 
             datos.put("id", meta.getId());
             datos.put("descripcion", meta.getDescripcion());
@@ -174,25 +144,13 @@ public class AhorroController {
             datos.put("montoFormateado", "$ " + formato.format(monto).replace(",", "."));
             datos.put("abonadoFormateado", "$ " + formato.format(abonado).replace(",", "."));
             datos.put("progreso", progreso);
+            datos.put("completada", meta.isCompletada());
 
             return datos;
         }).toList();
 
         model.addAttribute("metas", metasFormateadas);
         return "ahorro/progreso";
-    }
-
-    private String obtenerEmailUsuario(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) return null;
-
-        Object principal = auth.getPrincipal();
-        if (principal instanceof UsuarioDetalles usuarioDetalles) {
-            return usuarioDetalles.getUsername();
-        } else if (principal instanceof OidcUser oidcUser) {
-            return oidcUser.getEmail();
-        } else {
-            return null;
-        }
     }
 
 

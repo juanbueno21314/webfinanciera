@@ -19,9 +19,21 @@
         .btn-answer:hover:not(:disabled) { border-color:#0d6efd; background:#eff6ff; color:#0d6efd; transform:translateY(-2px); }
         .btn-answer.correct { background:#dcfce7; border-color:#16a34a; color:#166534; }
         .btn-answer.incorrect { background:#fee2e2; border-color:#dc2626; color:#991b1b; }
-        .feedback-box { border-radius:14px; padding:1rem 1.25rem; margin-top:1.25rem; min-height:60px; font-size:.95rem; line-height:1.5; }
+        .feedback-box { border-radius:14px; padding:1rem 1.25rem; margin-top:1.25rem; min-height:60px; font-size:.95rem; line-height:1.5; animation:fade-slide .3s ease; }
+        @keyframes fade-slide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         .btn-next { border-radius:12px; font-weight:600; padding:.7rem 1.5rem; }
         .ai-badge { font-size:.75rem; background:#eff6ff; color:#1d4ed8; border-radius:8px; padding:.2rem .6rem; border:1px solid #bfdbfe; }
+        .score-strip { display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border-radius:12px; padding:.6rem 1rem; margin-bottom:1rem; }
+        .score-strip .pts { font-size:1.2rem; font-weight:800; color:#0d6efd; }
+        .score-strip .label { font-size:.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+        .btn-answer.correct { animation:correct-bounce .35s ease; }
+        .btn-answer.incorrect { animation:wrong-shake .35s ease; }
+        @keyframes correct-bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+        @keyframes wrong-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+        /* Confetti */
+        .confetti-wrap { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; }
+        .confetti-piece { position:absolute; width:10px; height:10px; border-radius:2px; animation:confetti-fall 2.5s ease-in forwards; }
+        @keyframes confetti-fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
         @media(max-width:991px){.main-content{margin-left:0}}
         @media(max-width:576px){.btn-answer{width:100%;margin-bottom:.5rem}}
     </style>
@@ -34,7 +46,11 @@
             <h4 class="fw-bold mb-0">🧠 Verdadero o Falso</h4>
             <span class="ai-badge">🤖 Preguntas IA</span>
         </div>
-        <p class="text-muted mb-3" style="font-size:.85rem;" id="contador">⏳ Cargando preguntas...</p>
+        <p class="text-muted mb-2" style="font-size:.85rem;" id="contador">⏳ Cargando preguntas...</p>
+        <div class="score-strip">
+            <div><div class="label">Puntos</div><div class="pts" id="scorePts">0</div></div>
+            <div style="text-align:right;"><div class="label">Aciertos</div><div class="pts" id="scoreAciertos" style="color:#16a34a;">0/0</div></div>
+        </div>
 
         <div class="progress-bar-zen">
             <div class="progress-fill" id="progreso" style="width:0%"></div>
@@ -62,6 +78,7 @@
     let preguntas = [];
     let index = 0;
     let aciertos = 0;
+    let puntos = 0;
 
     fetch('/api/juegos/preguntas?cantidad=5')
         .then(res => res.json())
@@ -96,7 +113,10 @@
     function responder(opcion) {
         const actual = preguntas[index];
         const correcto = actual.respuesta === opcion;
-        if (correcto) aciertos++;
+        if (correcto) { aciertos++; puntos += 10; }
+
+        document.getElementById("scorePts").textContent = puntos;
+        document.getElementById("scoreAciertos").textContent = `${aciertos}/${index + 1}`;
 
         const btnV = document.getElementById("btnVerdadero");
         const btnF = document.getElementById("btnFalso");
@@ -110,7 +130,7 @@
             ? "background:#dcfce7;color:#166534;border:1px solid #bbf7d0;"
             : "background:#fee2e2;color:#991b1b;border:1px solid #fecaca;";
         feedback.innerHTML = correcto
-            ? `✔️ <strong>¡Correcto!</strong> ${actual.explicacion}`
+            ? `✔️ <strong>¡Correcto! +10 pts</strong> — ${actual.explicacion}`
             : `❌ <strong>Incorrecto.</strong> ${actual.explicacion}`;
 
         document.getElementById("btnSiguiente").classList.remove("d-none");
@@ -123,12 +143,15 @@
         } else {
             document.getElementById("progreso").style.width = "100%";
             guardarPuntajeFinal("verdadero_falso", aciertos);
-            const nota = aciertos === preguntas.length ? '🏆 ¡Eres un genio financiero!' : aciertos >= 3 ? '💡 Muy bien, sigue practicando.' : '📘 Revisa las lecciones para reforzar.';
+            const perfecto = aciertos === preguntas.length;
+            if (perfecto) lanzarConfetti();
+            const nota = perfecto ? '🏆 ¡Eres un genio financiero! Puntuación perfecta.' : aciertos >= 3 ? '💡 Muy bien, sigue practicando.' : '📘 Revisa las lecciones para reforzar.';
             document.getElementById("juego").innerHTML = `
                 <div class="text-center py-3">
-                    <div style="font-size:3.5rem;margin-bottom:1rem;">${aciertos === preguntas.length ? '🏆' : aciertos >= 3 ? '🎯' : '📘'}</div>
+                    <div style="font-size:3.5rem;margin-bottom:1rem;">${perfecto ? '🏆' : aciertos >= 3 ? '🎯' : '📘'}</div>
                     <h4 class="fw-bold mb-2">¡Juego terminado!</h4>
                     <p class="text-muted mb-1">Acertaste <strong>${aciertos}</strong> de <strong>${preguntas.length}</strong> preguntas.</p>
+                    <p style="font-size:1rem;font-weight:700;color:#0d6efd;">${puntos} puntos</p>
                     <p style="font-size:.95rem;">${nota}</p>
                     <div class="d-flex gap-3 justify-content-center mt-4 flex-wrap">
                         <a href="/juegos/verdaderoFalso" class="btn btn-next btn-primary">Jugar de nuevo</a>
@@ -136,6 +159,20 @@
                     </div>
                 </div>`;
         }
+    }
+
+    function lanzarConfetti() {
+        const wrap = document.createElement("div");
+        wrap.className = "confetti-wrap";
+        document.body.appendChild(wrap);
+        const colores = ["#0d6efd","#16a34a","#facc15","#ec4899","#f97316","#8b5cf6"];
+        for (let i = 0; i < 80; i++) {
+            const el = document.createElement("div");
+            el.className = "confetti-piece";
+            el.style.cssText = `left:${Math.random()*100}%;background:${colores[Math.floor(Math.random()*colores.length)]};animation-delay:${Math.random()*.8}s;animation-duration:${1.8+Math.random()}s;border-radius:${Math.random()>.5?'50%':'2px'};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;`;
+            wrap.appendChild(el);
+        }
+        setTimeout(() => wrap.remove(), 3500);
     }
 
     function guardarPuntajeFinal(juego, puntaje) {

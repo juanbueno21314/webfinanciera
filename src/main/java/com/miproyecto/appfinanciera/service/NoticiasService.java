@@ -9,7 +9,6 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import jakarta.annotation.PostConstruct;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +42,8 @@ public class NoticiasService {
 
     private volatile List<NoticiaDto> cache = Collections.emptyList();
 
-    @PostConstruct
-    public void init() {
-        cargarNoticias();
-    }
-
-    @Scheduled(fixedDelay = 1_800_000) // refresca cada 30 minutos
+    // initialDelay: espera 5s después de arrancar para no bloquear el inicio
+    @Scheduled(initialDelay = 5_000, fixedDelay = 1_800_000)
     public void cargarNoticias() {
         List<NoticiaDto> resultado = new ArrayList<>();
         for (String[] fuente : FEEDS) {
@@ -130,8 +125,7 @@ public class NoticiasService {
     }
 
     public List<NoticiaDto> obtenerNoticias() {
-        if (cache.isEmpty()) cargarNoticias();
-        return cache;
+        return cache; // retorna lo que haya en caché (vacío al inicio, se llena tras 5s)
     }
 
     public NoticiaDto obtenerUltimaNoticia() {

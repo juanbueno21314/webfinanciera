@@ -1,6 +1,7 @@
 package com.miproyecto.appfinanciera.controller;
 
 import com.miproyecto.appfinanciera.model.Usuario;
+import com.miproyecto.appfinanciera.service.PasswordResetService;
 import com.miproyecto.appfinanciera.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -16,25 +17,80 @@ public class LoginController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private PasswordResetService passwordResetService;
+
     @GetMapping("/login")
     public String login(Model model,
                         @RequestParam(required = false) String logout,
                         @RequestParam(required = false) String error,
-                        @RequestParam(required = false) String registrado) {
+                        @RequestParam(required = false) String registrado,
+                        @RequestParam(required = false) String contrasenaActualizada) {
 
         if (logout != null) {
             model.addAttribute("mensajeLogout", "Sesión cerrada con éxito.");
         }
-
         if (error != null) {
             model.addAttribute("mensajeError", "Credenciales incorrectas.");
         }
-
         if (registrado != null) {
             model.addAttribute("mensajeRegistro", "¡Registro exitoso! Ya puedes iniciar sesión.");
         }
+        if (contrasenaActualizada != null) {
+            model.addAttribute("mensajeRegistro", "✅ Contraseña actualizada. Ya puedes iniciar sesión.");
+        }
 
         return "login";
+    }
+
+    // ── RECUPERAR CONTRASEÑA ──────────────────────────────────
+
+    @GetMapping("/recuperar-contrasena")
+    public String mostrarRecuperar() {
+        return "recuperar-contrasena";
+    }
+
+    @PostMapping("/recuperar-contrasena")
+    public String procesarRecuperar(@RequestParam String email, Model model) {
+        passwordResetService.enviarEnlaceRecuperacion(email.trim().toLowerCase());
+        // Siempre mostramos el mismo mensaje (no revelar si el email existe)
+        model.addAttribute("enviado", true);
+        return "recuperar-contrasena";
+    }
+
+    // ── RESTABLECER CONTRASEÑA ────────────────────────────────
+
+    @GetMapping("/restablecer-contrasena")
+    public String mostrarRestablecer(@RequestParam String token, Model model) {
+        if (!passwordResetService.esTokenValido(token)) {
+            model.addAttribute("tokenInvalido", true);
+        }
+        model.addAttribute("token", token);
+        return "restablecer-contrasena";
+    }
+
+    @PostMapping("/restablecer-contrasena")
+    public String procesarRestablecer(@RequestParam String token,
+                                      @RequestParam String nuevaContrasena,
+                                      @RequestParam String confirmarContrasena,
+                                      Model model) {
+        if (!nuevaContrasena.equals(confirmarContrasena)) {
+            model.addAttribute("error", "Las contraseñas no coinciden.");
+            model.addAttribute("token", token);
+            return "restablecer-contrasena";
+        }
+        if (nuevaContrasena.length() < 8) {
+            model.addAttribute("error", "La contraseña debe tener al menos 8 caracteres.");
+            model.addAttribute("token", token);
+            return "restablecer-contrasena";
+        }
+        boolean ok = passwordResetService.restablecerContrasena(token, nuevaContrasena);
+        if (!ok) {
+            model.addAttribute("tokenInvalido", true);
+            model.addAttribute("token", token);
+            return "restablecer-contrasena";
+        }
+        return "redirect:/login?contrasenaActualizada=1";
     }
 
     @GetMapping("/registro")
