@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva contraseña - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<div class="container-fluid auth-wrapper d-flex align-items-center justify-content-center">
+    <div class="w-100" style="max-width:900px;">
+        <div class="card auth-card">
+            <div class="row g-0">
+
+                <!-- Panel izquierdo -->
+                <div class="col-md-5 auth-left d-flex flex-column justify-content-center">
+                    <div class="brand-logo">
+                        <div class="logo-box">
+                            <img th:src="@{/img/zenfi_logo.png}" alt="Zenfi" class="logo-auth">
+                        </div>
+                    </div>
+                    <h2 style="position:relative;z-index:1;">Crea una nueva<br>contraseña</h2>
+                    <p class="mt-3 mb-0" style="color:rgba(255,255,255,0.85);font-size:0.95rem;position:relative;z-index:1;">
+                        Elige una contraseña segura de al menos 8 caracteres. Una vez guardada, podrás iniciar sesión de inmediato.
+                    </p>
+                </div>
+
+                <!-- Panel derecho -->
+                <div class="col-md-7 auth-right d-flex flex-column justify-content-center">
+
+                    <!-- Token inválido / expirado -->
+                    <div th:if="${tokenInvalido}">
+                        <div style="text-align:center;padding:1rem 0;">
+                            <div style="font-size:3rem;margin-bottom:1rem;">⏰</div>
+                            <h4 class="auth-title">Enlace inválido o expirado</h4>
+                            <p style="color:#64748b;font-size:0.95rem;line-height:1.7;">
+                                Este enlace ya no es válido. Puede que haya expirado (30 min) o ya fue utilizado.
+                            </p>
+                            <a th:href="@{/recuperar-contrasena}" class="btn btn-primary w-100 mt-3">Solicitar nuevo enlace</a>
+                        </div>
+                    </div>
+
+                    <!-- Formulario nueva contraseña -->
+                    <div th:unless="${tokenInvalido}">
+                        <div class="mb-4">
+                            <h3 class="auth-title">Nueva contraseña</h3>
+                            <p class="auth-subtitle">Ingresa y confirma tu nueva contraseña.</p>
+                        </div>
+
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius:14px;">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <span th:text="${error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <form th:action="@{/restablecer-contrasena}" method="post" id="formReset">
+                            <input type="hidden" name="token" th:value="${token}">
+
+                            <div class="mb-3">
+                                <label class="form-label">Nueva contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="nuevaContrasena" name="nuevaContrasena"
+                                           required minlength="8" placeholder="Mínimo 8 caracteres"
+                                           oninput="actualizarFortaleza(this.value)">
+                                </div>
+                                <div class="strength-bar mt-2">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <small id="strengthLabel" style="font-size:0.75rem;color:#94a3b8;"></small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Confirmar contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control" id="confirmarContrasena" name="confirmarContrasena"
+                                           required minlength="8" placeholder="Repite la contraseña"
+                                           oninput="verificarCoincidencia()">
+                                </div>
+                                <small id="matchLabel" style="font-size:0.75rem;"></small>
+                            </div>
+
+                            <button class="btn btn-primary w-100" type="submit" id="btnGuardar">
+                                Guardar nueva contraseña
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function actualizarFortaleza(val) {
+        const fill = document.getElementById('strengthFill');
+        const label = document.getElementById('strengthLabel');
+        let pct = 0, color = '#ef4444', texto = '';
+        if (val.length >= 8) { pct = 40; color = '#f59e0b'; texto = 'Débil'; }
+        if (val.length >= 10 && /[A-Z]/.test(val)) { pct = 70; color = '#3b82f6'; texto = 'Media'; }
+        if (val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^a-zA-Z0-9]/.test(val)) {
+            pct = 100; color = '#10b981'; texto = 'Fuerte';
+        }
+        fill.style.width = pct + '%';
+        fill.style.background = color;
+        label.textContent = texto ? '🔐 Fortaleza: ' + texto : '';
+        label.style.color = color;
+    }
+
+    function verificarCoincidencia() {
+        const p1 = document.getElementById('nuevaContrasena').value;
+        const p2 = document.getElementById('confirmarContrasena').value;
+        const label = document.getElementById('matchLabel');
+        if (!p2) { label.textContent = ''; return; }
+        if (p1 === p2) {
+            label.textContent = '✔ Las contraseñas coinciden';
+            label.style.color = '#10b981';
+        } else {
+            label.textContent = '✖ No coinciden';
+            label.style.color = '#ef4444';
+        }
+    }
+</script>
+</body>
+</html>

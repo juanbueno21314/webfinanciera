@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi perfil - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(13,110,253,0.08), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(25,135,84,0.06), transparent 30%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: #0f172a;
+            margin: 0;
+        }
+        .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
+        .page-sub { font-size: 0.88rem; color: #64748b; margin-bottom: 1.75rem; }
+        .zen-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 20px rgba(15,23,42,0.07);
+            border: 1px solid #f1f5f9;
+            margin-bottom: 1.5rem;
+        }
+        .zen-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            width: 130px;
+            flex-shrink: 0;
+        }
+        .info-value { font-size: 0.95rem; color: #0f172a; }
+        .form-label { font-weight: 600; color: #334155; margin-bottom: 0.4rem; font-size: 0.9rem; }
+        .form-control {
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: #fcfdff;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.12);
+            border-color: #86b7fe;
+            background: #fff;
+        }
+        .btn-save {
+            border-radius: 10px;
+            padding: 0.7rem 1.75rem;
+            font-weight: 600;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(13,110,253,0.2);
+            transition: background 0.2s;
+        }
+        .btn-save:hover { background: #0b5ed7; color: #fff; }
+        .strength-bar { height: 4px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin-top: 6px; }
+        .strength-fill { height: 100%; border-radius: 999px; transition: width 0.3s, background 0.3s; width: 0%; }
+        @media (max-width: 767.98px) { .main-content { margin-left: 0; padding: 1rem; } }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="page-title">Mi perfil</div>
+    <p class="page-sub">Consulta tu información y gestiona tu contraseña.</p>
+
+    <div th:if="${exitoContrasena}" class="alert alert-success alert-dismissible fade show" style="border-radius:12px;" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${exitoContrasena}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorContrasena}" class="alert alert-danger alert-dismissible fade show" style="border-radius:12px;" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${errorContrasena}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Información -->
+        <div class="col-lg-5">
+            <div class="zen-card">
+                <div class="zen-card-title">
+                    <i class="bi bi-person-circle me-2 text-primary"></i>Información de la cuenta
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Nombre</span>
+                    <span class="info-value"
+                          th:text="${usuario.nombre + ' ' + (usuario.apellido != null ? usuario.apellido : '')}">Usuario</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Correo</span>
+                    <span class="info-value" th:text="${usuario.email}">correo@ejemplo.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tipo de cuenta</span>
+                    <span th:if="${esGoogle}"
+                          style="font-size:0.78rem;font-weight:700;padding:3px 12px;border-radius:999px;background:#fef9c3;color:#854d0e;">
+                        <i class="bi bi-google me-1"></i> Google
+                    </span>
+                    <span th:unless="${esGoogle}"
+                          style="font-size:0.78rem;font-weight:700;padding:3px 12px;border-radius:999px;background:#dbeafe;color:#1d4ed8;">
+                        <i class="bi bi-envelope me-1"></i> Email / Contraseña
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cambiar contraseña -->
+        <div class="col-lg-7">
+            <div class="zen-card">
+                <div class="zen-card-title">
+                    <i class="bi bi-lock me-2 text-primary"></i>Cambiar contraseña
+                </div>
+
+                <!-- Cuenta Google -->
+                <div th:if="${esGoogle}" class="p-3 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                    <p style="margin:0;font-size:0.92rem;color:#166534;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Tu cuenta está vinculada a <strong>Google</strong>. La contraseña se gestiona desde
+                        tu cuenta de Google — no es necesario cambiarla aquí.
+                    </p>
+                </div>
+
+                <!-- Cuenta local -->
+                <form th:unless="${esGoogle}" th:action="@{/perfil/cambiar-contrasena}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña actual</label>
+                        <input type="password" class="form-control" name="contrasenaActual"
+                               required placeholder="Tu contraseña actual">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nueva contraseña</label>
+                        <input type="password" class="form-control" name="nuevaContrasena" id="nuevaContrasena"
+                               required minlength="8" placeholder="Mínimo 8 caracteres"
+                               oninput="actualizarFortaleza(this.value)">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <small id="strengthLabel" style="font-size:0.75rem;color:#94a3b8;"></small>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Confirmar nueva contraseña</label>
+                        <input type="password" class="form-control" name="confirmarContrasena" id="confirmarContrasena"
+                               required minlength="8" placeholder="Repite la nueva contraseña"
+                               oninput="verificarCoincidencia()">
+                        <small id="matchLabel" style="font-size:0.75rem;"></small>
+                    </div>
+                    <button type="submit" class="btn btn-save">Guardar contraseña</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function actualizarFortaleza(val) {
+        const fill = document.getElementById('strengthFill');
+        const label = document.getElementById('strengthLabel');
+        let pct = 0, color = '#ef4444', texto = '';
+        if (val.length >= 8)  { pct = 40; color = '#f59e0b'; texto = 'Débil'; }
+        if (val.length >= 10 && /[A-Z]/.test(val)) { pct = 70; color = '#3b82f6'; texto = 'Media'; }
+        if (val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^a-zA-Z0-9]/.test(val)) {
+            pct = 100; color = '#10b981'; texto = 'Fuerte';
+        }
+        fill.style.width = pct + '%';
+        fill.style.background = color;
+        label.textContent = texto ? '🔐 Fortaleza: ' + texto : '';
+        label.style.color = color;
+    }
+
+    function verificarCoincidencia() {
+        const p1 = document.getElementById('nuevaContrasena').value;
+        const p2 = document.getElementById('confirmarContrasena').value;
+        const label = document.getElementById('matchLabel');
+        if (!p2) { label.textContent = ''; return; }
+        if (p1 === p2) { label.textContent = '✔ Las contraseñas coinciden'; label.style.color = '#10b981'; }
+        else           { label.textContent = '✖ No coinciden';              label.style.color = '#ef4444'; }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>¿Quién quiere ser Millonario? - Zenfi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" th:href="@{/img/zenfi_icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background:linear-gradient(160deg,#0f0c29,#302b63,#24243e); min-height:100vh; font-family:"Segoe UI",sans-serif; color:#fff; }
+        .main-content { margin-left:260px; padding:1.5rem; min-height:100vh; display:flex; flex-direction:column; }
+        .back-link { color:rgba(255,255,255,.6); font-size:.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; transition:color .2s; }
+        .back-link:hover { color:#facc15; }
+        .game-title { text-align:center; margin-bottom:1.25rem; }
+        .game-title h2 { font-size:1.6rem; font-weight:800; color:#facc15; text-shadow:0 0 20px rgba(250,204,21,.4); letter-spacing:.02em; }
+        .game-title p { color:rgba(255,255,255,.65); font-size:.88rem; margin:0; }
+
+        /* Layout principal */
+        .game-layout { display:flex; gap:1.5rem; align-items:flex-start; flex:1; }
+        .game-center { flex:1; }
+        .game-right { width:200px; flex-shrink:0; }
+
+        /* Caja de pregunta */
+        .question-card { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15); border-radius:20px; padding:2rem; margin-bottom:1.25rem; backdrop-filter:blur(8px); }
+        .q-number { font-size:.78rem; color:#a5b4fc; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.5rem; }
+        .q-prize { font-size:1.4rem; font-weight:800; color:#facc15; margin-bottom:1rem; }
+        .q-text { font-size:1.1rem; font-weight:600; color:#f1f5f9; line-height:1.55; min-height:70px; }
+
+        /* Opciones */
+        .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1.25rem; }
+        .opt-btn { display:flex; align-items:center; gap:.75rem; padding:.85rem 1.1rem; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.15); border-radius:14px; color:#e2e8f0; font-size:.92rem; font-weight:600; cursor:pointer; transition:all .2s; text-align:left; }
+        .opt-btn:hover:not(:disabled) { background:rgba(99,102,241,.25); border-color:#818cf8; color:#fff; transform:translateY(-2px); }
+        .opt-btn:disabled { cursor:default; }
+        .opt-btn .opt-letter { background:rgba(255,255,255,.12); border-radius:8px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; flex-shrink:0; }
+        .opt-btn.selected { background:rgba(59,130,246,.3); border-color:#60a5fa; color:#fff; }
+        .opt-btn.correct { background:rgba(34,197,94,.25); border-color:#4ade80; color:#86efac; animation:correct-pulse .4s ease; }
+        .opt-btn.wrong { background:rgba(239,68,68,.25); border-color:#f87171; color:#fca5a5; }
+        .opt-btn.hidden { opacity:.2; pointer-events:none; }
+        @keyframes correct-pulse { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
+
+        /* Comodines */
+        .lifelines { display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap; }
+        .lifeline-btn { display:flex; flex-direction:column; align-items:center; gap:.25rem; padding:.6rem 1rem; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); border-radius:12px; color:#e2e8f0; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .2s; min-width:80px; }
+        .lifeline-btn:hover:not(.used) { background:rgba(250,204,21,.15); border-color:#facc15; color:#facc15; }
+        .lifeline-btn.used { opacity:.35; cursor:not-allowed; filter:grayscale(1); }
+        .lifeline-btn .lifeline-icon { font-size:1.3rem; }
+
+        /* Retirarse */
+        .retire-btn { background:transparent; border:1px solid rgba(255,255,255,.25); border-radius:12px; color:rgba(255,255,255,.6); font-size:.85rem; font-weight:600; padding:.5rem 1.25rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:.4rem; }
+        .retire-btn:hover { border-color:#f87171; color:#f87171; }
+
+        /* Escalera de premios */
+        .prize-ladder { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:1rem; }
+        .prize-ladder h6 { color:#a5b4fc; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.75rem; text-align:center; }
+        .prize-row { display:flex; justify-content:space-between; align-items:center; padding:.35rem .6rem; border-radius:8px; font-size:.82rem; color:rgba(255,255,255,.55); transition:all .3s; }
+        .prize-row .prize-num { font-size:.7rem; color:rgba(255,255,255,.35); }
+        .prize-row.safe { color:#86efac; }
+        .prize-row.current { background:rgba(250,204,21,.18); color:#facc15; font-weight:700; border:1px solid rgba(250,204,21,.35); }
+        .prize-row.done { color:rgba(255,255,255,.35); text-decoration:line-through; }
+
+        /* Feedback */
+        .feedback-bar { border-radius:14px; padding:.9rem 1.2rem; font-size:.92rem; margin-top:.75rem; line-height:1.5; display:none; }
+        .feedback-bar.show { display:block; animation:fade-in .3s ease; }
+        @keyframes fade-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+        /* Pantalla de ayuda del público */
+        .audience-bar-wrap { margin-bottom:.6rem; }
+        .audience-label { font-size:.82rem; color:#e2e8f0; margin-bottom:.2rem; display:flex; justify-content:space-between; }
+        .audience-track { height:10px; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden; }
+        .audience-fill { height:100%; background:linear-gradient(90deg,#818cf8,#a78bfa); border-radius:999px; transition:width .8s ease; }
+
+        /* Game over / victoria */
+        .end-screen { text-align:center; padding:2rem 1rem; animation:fade-in .4s ease; }
+        .end-icon { font-size:4rem; margin-bottom:1rem; }
+        .end-title { font-size:1.8rem; font-weight:800; margin-bottom:.5rem; }
+        .end-prize { font-size:2rem; font-weight:800; color:#facc15; margin:1rem 0; }
+
+        @media(max-width:991px){ .main-content{margin-left:0} .game-layout{flex-direction:column} .game-right{width:100%} .options-grid{grid-template-columns:1fr} }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<div class="main-content">
+    <a href="/juegos" class="back-link"><i class="bi bi-arrow-left"></i> Volver a juegos</a>
+
+    <div class="game-title">
+        <h2>💰 ¿Quién quiere ser Millonario?</h2>
+        <p>10 preguntas · 3 comodines · Pisos seguros en pregunta 5 y 10</p>
+    </div>
+
+    <!-- Pantalla de inicio -->
+    <div id="intro" style="text-align:center;padding:2rem 1rem;">
+        <div style="font-size:3.5rem;margin-bottom:1rem;">🎯</div>
+        <h4 style="font-weight:700;color:#facc15;margin-bottom:.5rem;">¿Estás listo para el desafío?</h4>
+        <p style="color:rgba(255,255,255,.7);max-width:460px;margin:0 auto 1.5rem;line-height:1.7;">
+            Responde 10 preguntas de finanzas personales. Usa tus comodines con sabiduría y llega a los <strong style="color:#facc15;">$50.000.000</strong>.
+        </p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;">
+            <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:.75rem 1.25rem;font-size:.88rem;">🟡 Piso seguro en pregunta 5</div>
+            <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:.75rem 1.25rem;font-size:.88rem;">🟡 Piso seguro en pregunta 10</div>
+            <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:.75rem 1.25rem;font-size:.88rem;">🃏 50/50 · ⏭ Pasar · 👥 Público</div>
+        </div>
+        <button onclick="iniciarJuego()" class="btn" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:14px;padding:.9rem 2.5rem;font-size:1.1rem;font-weight:700;box-shadow:0 8px 24px rgba(79,70,229,.4);">
+            🚀 ¡Comenzar!
+        </button>
+    </div>
+
+    <!-- Área de juego -->
+    <div id="juego" class="game-layout" style="display:none;">
+
+        <!-- Centro -->
+        <div class="game-center">
+            <div class="question-card">
+                <div class="q-number" id="qNumero">Pregunta 1 de 10</div>
+                <div class="q-prize" id="qPremio">$100.000</div>
+                <div class="q-text" id="qTexto">Cargando...</div>
+            </div>
+
+            <div class="options-grid" id="opcionesGrid"></div>
+
+            <div id="feedbackBar" class="feedback-bar"></div>
+
+            <!-- Comodines + retirarse -->
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div class="lifelines">
+                    <button class="lifeline-btn" id="btn50" onclick="usar5050()">
+                        <span class="lifeline-icon">🃏</span>
+                        <span>50/50</span>
+                    </button>
+                    <button class="lifeline-btn" id="btnPasar" onclick="usarPasar()">
+                        <span class="lifeline-icon">⏭</span>
+                        <span>Pasar</span>
+                    </button>
+                    <button class="lifeline-btn" id="btnPublico" onclick="usarPublico()">
+                        <span class="lifeline-icon">👥</span>
+                        <span>Público</span>
+                    </button>
+                </div>
+                <button class="retire-btn" id="btnRetirarse" onclick="retirarse()">
+                    <i class="bi bi-box-arrow-right"></i> Retirarse
+                </button>
+            </div>
+
+            <!-- Barras del público (ocultas hasta usar comodín) -->
+            <div id="audiencePanel" style="display:none;margin-top:1rem;background:rgba(255,255,255,.06);border-radius:14px;padding:1rem;">
+                <p style="font-size:.82rem;color:#a5b4fc;margin-bottom:.75rem;font-weight:600;">📊 El público opina:</p>
+                <div id="audienceBars"></div>
+            </div>
+        </div>
+
+        <!-- Escalera de premios -->
+        <div class="game-right">
+            <div class="prize-ladder">
+                <h6>🏆 Escalera de premios</h6>
+                <div id="escalera"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pantalla final -->
+    <div id="final" style="display:none;"></div>
+</div>
+
+<script>
+const PREMIOS = [
+    "$100.000","$200.000","$300.000","$500.000","$1.000.000",
+    "$2.000.000","$5.000.000","$10.000.000","$25.000.000","$50.000.000"
+];
+const PISOS = [4, 9]; // índices 0-based de pisos seguros (preguntas 5 y 10)
+
+const BANCO = [
+    { texto:"¿Qué es el interés compuesto?", opciones:{A:"Interés solo sobre el capital original",B:"Interés sobre capital más intereses acumulados",C:"Un tipo de tarjeta sin intereses",D:"La tasa del Banco de la República"}, correcta:"B", exp:"El interés compuesto hace crecer el dinero exponencialmente porque los intereses generan más intereses." },
+    { texto:"¿Cuántos meses debe cubrir un fondo de emergencia?", opciones:{A:"Solo 1 mes",B:"Entre 3 y 6 meses",C:"Exactamente 2 semanas",D:"Más de 2 años"}, correcta:"B", exp:"Un colchón de 3 a 6 meses te protege ante imprevistos como desempleo o gastos médicos." },
+    { texto:"¿Qué significa diversificar inversiones?", opciones:{A:"Poner todo el dinero en un solo banco",B:"Cambiar de banco cada año",C:"Invertir en diferentes activos para reducir riesgo",D:"Guardar solo en efectivo"}, correcta:"C", exp:"Diversificar evita que un solo mal resultado afecte todo tu patrimonio." },
+    { texto:"¿Qué es la inflación?", opciones:{A:"El aumento del valor del peso",B:"La reducción del precio de los bienes",C:"El alza sostenida y generalizada de precios",D:"La tasa de cambio del dólar"}, correcta:"C", exp:"La inflación reduce el poder adquisitivo del dinero con el tiempo." },
+    { texto:"¿Qué describe la regla del 50/30/20?", opciones:{A:"50% ahorro, 30% inversión, 20% gastos",B:"50% necesidades, 30% deseos, 20% ahorro",C:"50% vivienda, 30% comida, 20% transporte",D:"50% trabajo, 30% descanso, 20% familia"}, correcta:"B", exp:"La regla 50/30/20 es un marco sencillo para distribuir el ingreso de forma equilibrada." },
+    { texto:"¿Qué le pasa a tu deuda si solo pagas el mínimo de la tarjeta de crédito?", opciones:{A:"Mejoras tu historial rápidamente",B:"Evitas todos los intereses",C:"Acumulas más deuda por los intereses sobre el saldo restante",D:"El banco te premia con más crédito"}, correcta:"C", exp:"Pagar solo el mínimo alarga la deuda años y puede triplicar el valor original que pagaste." },
+    { texto:"¿Qué administra una AFP (Administradora de Fondos de Pensiones)?", opciones:{A:"Créditos personales",B:"Ahorros para la jubilación",C:"Seguros médicos obligatorios",D:"Cambio de divisas"}, correcta:"B", exp:"Las AFP gestionan el ahorro pensional para que tengas ingreso al jubilarte." },
+    { texto:"¿Cuál es la diferencia entre ahorro e inversión?", opciones:{A:"No hay diferencia",B:"Ahorrar es seguro y sin rendimiento; invertir tiene riesgo y mayor rentabilidad",C:"La inversión siempre es más segura",D:"Solo los ricos pueden invertir"}, correcta:"B", exp:"Ahorrar conserva el dinero; invertir lo hace crecer asumiendo cierto riesgo." },
+    { texto:"¿Qué es la tasa efectiva anual (TEA)?", opciones:{A:"La tasa que cobra el gobierno",B:"El porcentaje real de interés pagado en un año con capitalización",C:"Una tasa solo para hipotecas",D:"La tasa de inflación anual"}, correcta:"B", exp:"La TEA incluye el efecto de la capitalización y refleja el costo real del crédito." },
+    { texto:"¿Para qué sirve una central de riesgos como DataCrédito?", opciones:{A:"Para dar dinero a quien lo necesite",B:"Para calcular los impuestos",C:"Para registrar el historial crediticio de las personas",D:"Para dar seguros de vida"}, correcta:"C", exp:"DataCrédito registra tu comportamiento de pago y las entidades lo consultan antes de darte un crédito." },
+    { texto:"¿Qué es una acción en bolsa?", opciones:{A:"Un préstamo al banco",B:"Una fracción de propiedad de una empresa",C:"Un contrato de seguro",D:"Una cuenta de ahorros a plazo fijo"}, correcta:"B", exp:"Comprar una acción te hace dueño de una pequeña parte de la empresa." },
+    { texto:"Si la inflación anual es del 10%, ¿qué pasa con $1.000.000 guardados sin invertir?", opciones:{A:"Siguen valiendo lo mismo",B:"Valen más, porque el dinero crece solo",C:"Su poder adquisitivo cae a unos $909.000 reales",D:"Se duplican automáticamente"}, correcta:"C", exp:"La inflación erosiona el poder adquisitivo: $1.000.000 de hoy compra menos que el año pasado." },
+    { texto:"¿Qué es el apalancamiento financiero?", opciones:{A:"Pagar todas las deudas de una vez",B:"Usar deuda para financiar inversiones y ampliar la rentabilidad",C:"Prestar dinero a otras personas",D:"Un tipo de cuenta con beneficios"}, correcta:"B", exp:"El apalancamiento multiplica resultados, pero también los riesgos si la inversión falla." },
+    { texto:"¿Qué es el Banco de la República de Colombia?", opciones:{A:"El banco más grande del país",B:"Un banco donde cualquier ciudadano abre cuenta",C:"El banco central que controla la política monetaria",D:"Un banco exclusivo del gobierno"}, correcta:"C", exp:"El Banco de la República emite moneda, controla la inflación y fija las tasas de interés de referencia." },
+    { texto:"¿Cuál es el objetivo principal de un presupuesto personal?", opciones:{A:"Gastar todo el ingreso mensual",B:"Saber a dónde va el dinero y tomar mejores decisiones",C:"Impresionar a los demás",D:"Evitar pagar impuestos"}, correcta:"B", exp:"Un presupuesto te da control sobre tus finanzas y te ayuda a alcanzar tus metas." }
+];
+
+let preguntas = [], idx = 0, usadas = { cincuenta: false, pasar: false, publico: false };
+let respondiendo = false;
+
+function iniciarJuego() {
+    preguntas = [...BANCO].sort(() => Math.random() - .5).slice(0, 10);
+    document.getElementById("intro").style.display = "none";
+    document.getElementById("juego").style.display = "flex";
+    construirEscalera();
+    cargarPregunta();
+}
+
+function construirEscalera() {
+    const escalera = document.getElementById("escalera");
+    escalera.innerHTML = "";
+    for (let i = 9; i >= 0; i--) {
+        const div = document.createElement("div");
+        div.className = "prize-row" + (PISOS.includes(i) ? " safe" : "");
+        div.id = "piso-" + i;
+        div.innerHTML = `<span class="prize-num">${i+1}</span><span>${PREMIOS[i]}</span>`;
+        escalera.appendChild(div);
+    }
+    actualizarEscalera();
+}
+
+function actualizarEscalera() {
+    for (let i = 0; i < 10; i++) {
+        const el = document.getElementById("piso-" + i);
+        el.className = "prize-row";
+        if (i < idx) el.classList.add("done");
+        else if (i === idx) el.classList.add("current");
+        else if (PISOS.includes(i)) el.classList.add("safe");
+    }
+}
+
+function cargarPregunta() {
+    respondiendo = false;
+    const p = preguntas[idx];
+    document.getElementById("qNumero").textContent = `Pregunta ${idx + 1} de 10`;
+    document.getElementById("qPremio").textContent = PREMIOS[idx];
+    document.getElementById("qTexto").textContent = p.texto;
+    document.getElementById("feedbackBar").className = "feedback-bar";
+    document.getElementById("audiencePanel").style.display = "none";
+    document.getElementById("btnRetirarse").style.display = idx === 0 ? "none" : "flex";
+
+    const grid = document.getElementById("opcionesGrid");
+    grid.innerHTML = "";
+    Object.entries(p.opciones).forEach(([letra, texto]) => {
+        const btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.id = "opt-" + letra;
+        btn.innerHTML = `<span class="opt-letter">${letra}</span><span>${texto}</span>`;
+        btn.onclick = () => seleccionar(letra);
+        grid.appendChild(btn);
+    });
+    actualizarEscalera();
+}
+
+function seleccionar(letra) {
+    if (respondiendo) return;
+    respondiendo = true;
+
+    const p = preguntas[idx];
+    const btn = document.getElementById("opt-" + letra);
+    btn.classList.add("selected");
+
+    // Deshabilitar todos
+    document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
+
+    setTimeout(() => {
+        const correcto = letra === p.correcta;
+        document.getElementById("opt-" + p.correcta).classList.add("correct");
+        if (!correcto) btn.classList.replace("selected", "wrong");
+
+        const fb = document.getElementById("feedbackBar");
+        fb.className = "feedback-bar show";
+        if (correcto) {
+            fb.style.cssText = "background:rgba(34,197,94,.15);border:1px solid rgba(74,222,128,.4);color:#86efac;";
+            fb.innerHTML = `✔️ <strong>¡Correcto!</strong> ${p.exp}`;
+        } else {
+            fb.style.cssText = "background:rgba(239,68,68,.15);border:1px solid rgba(248,113,113,.4);color:#fca5a5;";
+            fb.innerHTML = `❌ <strong>Respuesta incorrecta.</strong> ${p.exp} La respuesta era <strong>${p.correcta}</strong>.`;
+        }
+
+        setTimeout(() => {
+            if (correcto) {
+                idx++;
+                if (idx >= 10) ganar();
+                else cargarPregunta();
+            } else {
+                gameOver(false);
+            }
+        }, 2800);
+    }, 1200);
+}
+
+function usar5050() {
+    if (usadas.cincuenta || respondiendo) return;
+    usadas.cincuenta = true;
+    document.getElementById("btn50").classList.add("used");
+    const p = preguntas[idx];
+    let incorrectas = Object.keys(p.opciones).filter(l => l !== p.correcta);
+    incorrectas.sort(() => Math.random() - .5).slice(0, 2).forEach(l => {
+        document.getElementById("opt-" + l).classList.add("hidden");
+    });
+}
+
+function usarPasar() {
+    if (usadas.pasar || respondiendo) return;
+    usadas.pasar = true;
+    document.getElementById("btnPasar").classList.add("used");
+    // Reemplaza la pregunta actual por otra del banco no usada
+    const yaUsadas = preguntas.map(p => p.texto);
+    const disponibles = BANCO.filter(p => !yaUsadas.includes(p.texto));
+    if (disponibles.length > 0) {
+        const nueva = disponibles[Math.floor(Math.random() * disponibles.length)];
+        preguntas[idx] = nueva;
+    }
+    cargarPregunta();
+}
+
+function usarPublico() {
+    if (usadas.publico || respondiendo) return;
+    usadas.publico = true;
+    document.getElementById("btnPublico").classList.add("used");
+    const p = preguntas[idx];
+    const letras = Object.keys(p.opciones);
+    // Generar porcentajes fake (la correcta tiene más probabilidad)
+    let pcts = {};
+    let restante = 100;
+    const incorrectas = letras.filter(l => l !== p.correcta);
+    incorrectas.forEach((l, i) => {
+        const v = i < incorrectas.length - 1 ? Math.floor(Math.random() * 12) + 3 : 0;
+        pcts[l] = v;
+        restante -= v;
+    });
+    incorrectas[incorrectas.length - 1] = Math.max(3, restante - Math.floor(restante * .55));
+    pcts[incorrectas[incorrectas.length - 1]] = Math.max(3, restante - Math.floor(restante * .55));
+    pcts[p.correcta] = 100 - Object.values(pcts).reduce((a,b) => a+b, 0);
+
+    const panel = document.getElementById("audiencePanel");
+    panel.style.display = "block";
+    const bars = document.getElementById("audienceBars");
+    bars.innerHTML = letras.map(l => `
+        <div class="audience-bar-wrap">
+            <div class="audience-label"><span>${l}: ${p.opciones[l].substring(0,30)}...</span><strong>${pcts[l] || 0}%</strong></div>
+            <div class="audience-track"><div class="audience-fill" style="width:0%" data-w="${pcts[l] || 0}%"></div></div>
+        </div>
+    `).join("");
+    setTimeout(() => {
+        document.querySelectorAll(".audience-fill").forEach(el => {
+            el.style.width = el.dataset.w;
+        });
+    }, 50);
+}
+
+function retirarse() {
+    if (respondiendo) return;
+    const premioActual = idx > 0 ? PREMIOS[idx - 1] : "$0";
+    mostrarFinal("retirado", premioActual, idx);
+}
+
+function gameOver(ganado) {
+    // Buscar el piso seguro más alto alcanzado
+    const pisoAlcanzado = PISOS.filter(p => p < idx).pop();
+    const premioSeguro = pisoAlcanzado !== undefined ? PREMIOS[pisoAlcanzado] : "$0";
+    guardarPuntaje(idx);
+    mostrarFinal("perdido", premioSeguro, idx);
+}
+
+function ganar() {
+    guardarPuntaje(10);
+    mostrarFinal("ganado", PREMIOS[9], 10);
+}
+
+function mostrarFinal(estado, premio, nivel) {
+    document.getElementById("juego").style.display = "none";
+    const el = document.getElementById("final");
+    el.style.display = "block";
+
+    const iconos = { ganado:"🏆", perdido:"😔", retirado:"💼" };
+    const titulos = { ganado:"¡MILLONARIO!", perdido:"¡Fue un gran intento!", retirado:"¡Te retiraste a tiempo!" };
+    const subtitulos = {
+        ganado:"Respondiste las 10 preguntas correctamente. ¡Eres un genio financiero!",
+        perdido:`Llegaste hasta la pregunta ${nivel}. Tu premio de piso seguro es:`,
+        retirado:`Decidiste retirarte con tu premio acumulado. ¡Decisión inteligente!`
+    };
+
+    el.innerHTML = `
+        <div class="end-screen">
+            <div class="end-icon">${iconos[estado]}</div>
+            <div class="end-title">${titulos[estado]}</div>
+            <p style="color:rgba(255,255,255,.7);max-width:450px;margin:.5rem auto 0;">${subtitulos[estado]}</p>
+            <div class="end-prize">${premio}</div>
+            <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:1.5rem;">Respondiste correctamente ${nivel} de 10 preguntas</p>
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                <button onclick="reiniciar()" class="btn" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:12px;padding:.75rem 1.75rem;font-weight:700;">
+                    🔄 Jugar de nuevo
+                </button>
+                <a href="/juegos" class="btn" style="background:rgba(255,255,255,.1);color:#e2e8f0;border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:.75rem 1.75rem;font-weight:700;">
+                    ← Volver a juegos
+                </a>
+            </div>
+        </div>`;
+}
+
+function reiniciar() {
+    idx = 0;
+    usadas = { cincuenta: false, pasar: false, publico: false };
+    respondiendo = false;
+    ["btn50","btnPasar","btnPublico"].forEach(id => document.getElementById(id).classList.remove("used"));
+    document.getElementById("final").style.display = "none";
+    document.getElementById("intro").style.display = "block";
+}
+
+function guardarPuntaje(nivel) {
+    fetch('/api/puntajes/guardar', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ juego: 'millonario', puntaje: nivel })
+    });
+}
+</script>
+</body>
+</html>
