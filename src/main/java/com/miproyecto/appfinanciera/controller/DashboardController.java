@@ -76,6 +76,6 @@ public class DashboardController {
         model.addAttribute("totalLecciones", totalLecciones);
         model.addAttribute("leccionesCompletadas", leccionesCompletadas);
 
-        return "/dashboard";
+        return "dashboard";
     }
 }
