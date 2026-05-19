@@ -70,7 +70,7 @@
                     <label for="monto" class="form-label fw-semibold">¿Cuánto dinero necesitas?</label>
                     <div class="input-group">
                         <span class="input-group-text" style="border-radius:12px 0 0 12px;background:#f8fafc;border:1px solid #e2e8f0;">$</span>
-                        <input type="text" class="form-control" id="monto" placeholder="1.000.000" th:field="*{monto}" required style="border-radius:0 12px 12px 0;">
+                        <input type="text" class="form-control money-input" id="monto" placeholder="Ej: 550.000" th:field="*{monto}" required style="border-radius:0 12px 12px 0;">
                     </div>
                 </div>
 
@@ -82,17 +82,6 @@
         </div>
     </div>
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const inputMonto = document.getElementById('monto');
-        inputMonto.addEventListener('input', function (e) {
-            let val = e.target.value.replace(/\D/g, '');
-            e.target.value = new Intl.NumberFormat('es-CO').format(val);
-        });
-        inputMonto.form.addEventListener('submit', function () {
-            inputMonto.value = inputMonto.value.replace(/\./g, '').replace(/\s/g, '');
-        });
-    });
-</script>
+<script src="/js/money-format.js"></script>
 </body>
 </html>

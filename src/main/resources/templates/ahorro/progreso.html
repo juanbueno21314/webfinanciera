@@ -71,7 +71,7 @@
                     <input type="hidden" name="id" th:value="${meta.id}">
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        <input type="number" name="abono" class="form-control" placeholder="Valor a abonar" required>
+                        <input type="text" name="abono" class="form-control money-input" placeholder="Ej: 550.000" required>
                         <button class="btn btn-zen btn-success" type="submit" style="border-radius:0 12px 12px 0;">Abonar</button>
                     </div>
                 </form>
@@ -90,5 +90,6 @@
         <a href="/dashboard" class="btn btn-zen btn-outline-secondary">← Volver al inicio</a>
     </div>
 </div>
+<script src="/js/money-format.js"></script>
 </body>
 </html>
