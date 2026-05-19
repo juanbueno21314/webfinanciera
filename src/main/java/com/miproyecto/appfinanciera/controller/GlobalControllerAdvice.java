@@ -42,8 +42,9 @@ public class GlobalControllerAdvice {
                     model.addAttribute("nombre", usuario.getNombre());
                     model.addAttribute("apellido", usuario.getApellido());
 
+                    String apellido = usuario.getApellido();
                     String iniciales = ("" + usuario.getNombre().charAt(0) +
-                            (usuario.getApellido().isEmpty() ? "" : usuario.getApellido().charAt(0))).toUpperCase();
+                            (apellido == null || apellido.isEmpty() ? "" : apellido.charAt(0))).toUpperCase();
                     model.addAttribute("iniciales", iniciales);
                 }
             }
