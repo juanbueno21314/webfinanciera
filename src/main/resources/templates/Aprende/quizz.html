@@ -63,6 +63,30 @@
         .alert-warning {
             border-radius: 12px;
         }
+        .ia-explicacion-btn {
+            width: 100%;
+            border-radius: 12px;
+            font-size: .85rem;
+            font-weight: 600;
+            padding: .5rem 1rem;
+            margin-top: .5rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .ia-explicacion-btn:hover { background: #dbeafe; }
+        .ia-explicacion-box {
+            background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: .75rem 1rem;
+            font-size: .88rem;
+            color: #1e40af;
+            line-height: 1.65;
+            margin-top: .5rem;
+        }
 
         #btnSiguiente {
             padding: 10px 30px;
@@ -181,6 +205,36 @@
             if (seleccion !== correcta) {
                 const tipBox = contenedor.querySelector(".tip-box");
                 if (tipBox) tipBox.classList.remove("d-none");
+
+                // Botón de explicación IA
+                const preguntaTexto = contenedor.querySelector("h5").textContent.trim();
+                const correctaTexto = contenedor.querySelector(`[data-respuesta="${correcta}"]`).textContent.trim();
+
+                const iaBtn = document.createElement("button");
+                iaBtn.className = "ia-explicacion-btn";
+                iaBtn.innerHTML = "🤖 ¿Por qué es correcta esa respuesta?";
+                iaBtn.onclick = function () {
+                    iaBtn.disabled = true;
+                    iaBtn.textContent = "⏳ Consultando IA...";
+                    fetch("/api/aprende/explicar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ pregunta: preguntaTexto, respuestaCorrecta: correctaTexto })
+                    })
+                    .then(r => r.text())
+                    .then(texto => {
+                        iaBtn.style.display = "none";
+                        const box = document.createElement("div");
+                        box.className = "ia-explicacion-box";
+                        box.innerHTML = "<strong>🤖 Explicación IA:</strong> " + texto;
+                        iaBtn.parentNode.insertBefore(box, iaBtn.nextSibling);
+                    })
+                    .catch(() => {
+                        iaBtn.disabled = false;
+                        iaBtn.innerHTML = "🤖 ¿Por qué es correcta esa respuesta?";
+                    });
+                };
+                contenedor.appendChild(iaBtn);
             }
         });
     });

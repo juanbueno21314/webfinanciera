@@ -35,7 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/puntajes/**", "/api/chat", "/api/gastos/**")
+                        .ignoringRequestMatchers("/api/puntajes/**", "/api/chat", "/api/gastos/**", "/api/aprende/**")
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

@@ -163,9 +163,18 @@
         <!-- Panel lateral -->
         <div class="col-lg-3">
             <div class="zen-card tip-card p-3 sticky-top" style="top:1.5rem;">
-                <div class="fw-bold mb-2" style="font-size:.9rem;">🤖 Consejo con IA</div>
-                <p id="tip-financiero" style="font-size:.88rem;color:#334155;line-height:1.6;" th:text="${tipFinanciero}">Cargando consejo...</p>
-                <button class="btn btn-zen btn-outline-primary w-100 mt-2" style="font-size:.82rem;" onclick="verOtroConsejo()">Generar consejo IA</button>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fw-bold" style="font-size:.9rem;">🤖 Análisis IA</span>
+                    <span style="margin-left:auto;font-size:.65rem;background:#0d6efd;color:#fff;border-radius:999px;padding:1px 7px;font-weight:600;">IA</span>
+                </div>
+                <p id="tip-financiero" style="font-size:.85rem;color:#334155;line-height:1.6;transition:opacity .3s;" th:text="${tipFinanciero}">Cargando análisis...</p>
+                <button class="btn btn-zen btn-outline-primary w-100 mt-2" style="font-size:.82rem;" onclick="analizarGastos(this)">
+                    📊 Analizar mis gastos
+                </button>
+                <hr style="margin:.75rem 0;border-color:#dbeafe;">
+                <button class="btn btn-zen btn-outline-secondary w-100" style="font-size:.8rem;" onclick="verConsejoGeneral(this)">
+                    💡 Consejo financiero
+                </button>
             </div>
         </div>
     </div>
@@ -192,15 +201,24 @@
 </script>
 
 <script>
-    function verOtroConsejo() {
+    function analizarGastos(btn) {
         const p = document.getElementById('tip-financiero');
-        const btn = event.target;
+        btn.disabled = true; btn.textContent = '⏳ Analizando...';
+        p.style.opacity = .4;
+        fetch('/api/presupuesto/analisis-ia').then(res => res.text()).then(data => {
+            p.style.opacity = 0;
+            setTimeout(() => { p.innerText = data; p.style.opacity = 1; btn.disabled = false; btn.textContent = '📊 Actualizar análisis'; }, 300);
+        }).catch(() => { p.style.opacity = 1; btn.disabled = false; btn.textContent = '📊 Analizar mis gastos'; });
+    }
+
+    function verConsejoGeneral(btn) {
+        const p = document.getElementById('tip-financiero');
         btn.disabled = true; btn.textContent = '⏳ Generando...';
-        p.style.opacity = .5;
+        p.style.opacity = .4;
         fetch('/api/consejos/personalizado').then(res => res.text()).then(data => {
             p.style.opacity = 0;
-            setTimeout(() => { p.innerText = data; p.style.opacity = 1; btn.disabled = false; btn.textContent = 'Generar consejo IA'; }, 350);
-        }).catch(() => { p.style.opacity = 1; btn.disabled = false; btn.textContent = 'Generar consejo IA'; });
+            setTimeout(() => { p.innerText = data; p.style.opacity = 1; btn.disabled = false; btn.textContent = '💡 Consejo financiero'; }, 300);
+        }).catch(() => { p.style.opacity = 1; btn.disabled = false; btn.textContent = '💡 Consejo financiero'; });
     }
 
     let categorizarTimeout;

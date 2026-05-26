@@ -45,6 +45,24 @@
         <a href="/ahorro/paso1" class="btn btn-zen btn-primary">Crear mi primera meta</a>
     </div>
 
+    <!-- Card Coach IA -->
+    <div th:if="${metas != null and !metas.isEmpty()}"
+         class="zen-card p-4 mb-4"
+         style="background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border:1px solid #bfdbfe;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span style="font-size:1.4rem;">🤖</span>
+            <span class="fw-bold" style="font-size:.95rem;color:#1e40af;">Coach IA de Ahorro</span>
+            <span style="margin-left:auto;font-size:.68rem;background:#0d6efd;color:#fff;border-radius:999px;padding:2px 8px;font-weight:600;">IA</span>
+        </div>
+        <p id="ia-ahorro-texto" style="font-size:.88rem;color:#334155;line-height:1.7;margin-bottom:1rem;transition:opacity .3s;">
+            Tu asistente puede analizar el progreso de tus metas y darte recomendaciones personalizadas.
+        </p>
+        <button class="btn btn-outline-primary w-100" style="border-radius:12px;font-weight:600;font-size:.88rem;"
+                onclick="analizarMetas(this)">
+            🔍 Analizar mis metas con IA
+        </button>
+    </div>
+
     <div class="row g-4">
         <div class="col-md-6" th:each="meta : ${metas}">
             <div class="meta-card p-4">
@@ -91,5 +109,30 @@
     </div>
 </div>
 <script src="/js/money-format.js"></script>
+<script>
+    function analizarMetas(btn) {
+        const texto = document.getElementById('ia-ahorro-texto');
+        btn.disabled = true;
+        btn.textContent = '⏳ Analizando tus metas...';
+        texto.style.opacity = '0.4';
+
+        fetch('/api/ahorro/consejo-ia')
+            .then(r => r.text())
+            .then(data => {
+                texto.style.opacity = '0';
+                setTimeout(() => {
+                    texto.textContent = data;
+                    texto.style.opacity = '1';
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Actualizar análisis';
+                }, 300);
+            })
+            .catch(() => {
+                texto.style.opacity = '1';
+                btn.disabled = false;
+                btn.textContent = '🔍 Analizar mis metas con IA';
+            });
+    }
+</script>
 </body>
 </html>

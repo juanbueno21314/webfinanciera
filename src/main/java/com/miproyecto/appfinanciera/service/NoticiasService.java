@@ -21,53 +21,104 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class NoticiasService {
 
     private static final Logger log = LoggerFactory.getLogger(NoticiasService.class);
 
-    // Imágenes de respaldo distintas si el feed no trae imagen
+    private static final int MAX_NOTICIAS    = 6;
+    private static final int MAX_POR_FUENTE  = 3;
+
     private static final String[] FALLBACKS = {
         "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&h=300&fit=crop&auto=format",
         "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=300&fit=crop&auto=format",
         "https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=600&h=300&fit=crop&auto=format"
     };
 
+    // Palabras clave que garantizan que el artículo sea de economía/finanzas
+    private static final Set<String> KEYWORDS = Set.of(
+        "economía", "economia", "económico", "economico", "económica", "economica",
+        "finanzas", "financiero", "financiera", "financieros", "financieras",
+        "dinero", "inversión", "inversion", "inversionista", "inversionistas",
+        "bolsa", "acciones", "mercado", "mercados", "bursátil", "bursatil",
+        "dólar", "dolar", "peso", "euro", "divisa", "divisas", "tasa de cambio",
+        "banco", "bancos", "bancario", "bancaria", "banco central",
+        "deuda", "crédito", "credito", "préstamo", "prestamo", "hipoteca",
+        "inflación", "inflacion", "deflación", "deflacion",
+        "pib", "gdp", "recesión", "recesion", "crecimiento económico",
+        "empleo", "desempleo", "desocupación",
+        "impuesto", "impuestos", "tributario", "tributaria", "reforma tributaria",
+        "presupuesto", "fiscal", "déficit", "deficit", "superávit", "superavit",
+        "ahorro", "pensión", "pension", "jubilación",
+        "exportación", "exportacion", "importación", "importacion", "comercio exterior",
+        "negocio", "negocios", "empresa", "empresas", "industria", "sector",
+        "rentabilidad", "ganancia", "ganancias", "utilidad", "utilidades",
+        "tasa", "interés", "interes", "rendimiento",
+        "petróleo", "petroleo", "minería", "mineria", "commodities",
+        "precio del", "precios del", "costo de", "salario", "salarios",
+        "reservas", "emisión", "emision", "liquidez", "patrimonio",
+        "fusión", "fusion", "adquisición", "adquisicion", "ipo", "capitalización"
+    );
+
+    // {nombre-fallback, url, "true"=aplicar filtro / "false"=ya es sección de economía}
     private static final List<String[]> FEEDS = List.of(
-        new String[]{"BBC Mundo",    "https://feeds.bbci.co.uk/mundo/economia/rss.xml"},
-        new String[]{"Portafolio",   "https://www.portafolio.co/rss/portafolio.xml"},
-        new String[]{"La República", "https://www.larepublica.co/rss/negocios"}
+        new String[]{"Economía CO", "https://news.google.com/rss/search?q=economia+colombia+finanzas&hl=es-419&gl=CO&ceid=CO:es-419", "false"},
+        new String[]{"Mercados CO", "https://news.google.com/rss/search?q=mercados+bolsa+dolar+inflacion+colombia&hl=es-419&gl=CO&ceid=CO:es-419", "false"}
     );
 
     private volatile List<NoticiaDto> cache = Collections.emptyList();
 
-    // initialDelay: espera 5s después de arrancar para no bloquear el inicio
     @Scheduled(initialDelay = 5_000, fixedDelay = 1_800_000)
     public void cargarNoticias() {
         List<NoticiaDto> resultado = new ArrayList<>();
         for (String[] fuente : FEEDS) {
-            if (resultado.size() >= 3) break;
-            String nombre = fuente[0];
-            String feedUrl = fuente[1];
+            if (resultado.size() >= MAX_NOTICIAS) break;
+            String nombreFallback = fuente[0];
+            String feedUrl       = fuente[1];
+            boolean filtrar      = "true".equals(fuente[2]);
+            int cargadasDeFuente = 0;
             try {
                 SyndFeed feed = leerFeed(feedUrl);
                 for (SyndEntry entry : feed.getEntries()) {
-                    if (resultado.size() >= 3) break;
+                    if (resultado.size() >= MAX_NOTICIAS) break;
+                    if (cargadasDeFuente >= MAX_POR_FUENTE) break;
+
                     String titulo = entry.getTitle();
                     String enlace = entry.getLink();
                     if (titulo == null || enlace == null || titulo.isBlank()) continue;
+                    if (filtrar && !esRelevante(titulo, entry)) continue;
+
+                    // Google News añade " - Fuente" al final del título → separar
+                    String fuente_real = nombreFallback;
+                    int dashIdx = titulo.lastIndexOf(" - ");
+                    if (dashIdx > 20) {
+                        fuente_real = titulo.substring(dashIdx + 3).trim();
+                        titulo = titulo.substring(0, dashIdx).trim();
+                    }
+
                     String imagen = extraerImagen(entry, resultado.size());
-                    resultado.add(new NoticiaDto(titulo.trim(), enlace, imagen, nombre));
+                    resultado.add(new NoticiaDto(titulo, enlace, imagen, fuente_real));
+                    cargadasDeFuente++;
                 }
-                log.info("RSS '{}': {} artículos cargados hasta ahora", nombre, resultado.size());
+                log.info("RSS '{}': {} artículos cargados", nombreFallback, cargadasDeFuente);
             } catch (Exception e) {
-                log.warn("No se pudo leer RSS '{}': {}", nombre, e.getMessage());
+                log.warn("No se pudo leer RSS '{}': {}", nombreFallback, e.getMessage());
             }
         }
         if (!resultado.isEmpty()) {
             cache = Collections.unmodifiableList(resultado);
         }
+    }
+
+    private boolean esRelevante(String titulo, SyndEntry entry) {
+        StringBuilder texto = new StringBuilder(titulo.toLowerCase());
+        if (entry.getCategories() != null) {
+            entry.getCategories().forEach(c -> texto.append(' ').append(c.getName().toLowerCase()));
+        }
+        String textoFinal = texto.toString();
+        return KEYWORDS.stream().anyMatch(textoFinal::contains);
     }
 
     private SyndFeed leerFeed(String feedUrl) throws Exception {
