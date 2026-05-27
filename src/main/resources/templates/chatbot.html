@@ -98,7 +98,6 @@
         if (!texto) return;
         agregarBurbuja(texto, 'user');
         msgInput.value = ''; msgInput.style.height = 'auto';
-        document.getElementById('sugerencias').style.display = 'none';
         const typing = agregarTyping();
 
         fetch('/api/chat', {
